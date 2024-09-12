@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bàn cờ vua</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+        }
+
+        .captured {
+            width: 100px;
+            height: 480px;
+            border: 2px solid #333;
+            margin: 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 10px;
+            background-color: #fafafa;
+        }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 5px solid #333;
+        }
+
+        .chessboard .tile {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .chessboard .tile img {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .selected {
+            border: 3px solid red;
+        }
+
+        .highlight {
+            background-color: #90ee90 !important;
+            /* Màu xanh lá cho ô di chuyển hợp lệ */
+            border: 1px solid black;
+        }
+
+        .capture {
+            background-color: #ff6961 !important;
+            /* Màu đỏ cho ô có thể ăn quân */
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Khu vực chứa các quân cờ trắng bị ăn -->
+        <div class="captured" id="whiteCaptured"></div>
+
+        <div class="chessboard" id="chessboard"></div>
+
+        <!-- Khu vực chứa các quân cờ đen bị ăn -->
+        <div class="captured" id="blackCaptured"></div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const chessboard = document.getElementById('chessboard');
+            const whiteCaptured = document.getElementById('whiteCaptured');
+            const blackCaptured = document.getElementById('blackCaptured');
+            let selectedPiece = null;
+            let selectedTile = null;
+            let tiles = [];
+            let currentPlayer = 'white'; // Bắt đầu với lượt của quân trắng
+
+            // Mảng chứa vị trí quân cờ ban đầu
+            const initialBoard = [
+                ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'],
+                ['pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn'],
+                [], [], [], [],
+                ['pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn'],
+                ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook']
+            ];
+
+            // Hàm tạo quân cờ (trắng hoặc đen)
+            function createPiece(piece, isWhite) {
+                const img = document.createElement('img');
+                img.src = `image/${isWhite ? 'w' : 'b'}_${piece}.png`;
+                img.classList.add('piece');
+                img.setAttribute('data-color', isWhite ? 'white' : 'black');
+                img.setAttribute('data-piece', piece); // Gắn thêm loại quân cờ để xác định
+                return img;
+            }
+
+            // Xóa các ô đã được đánh dấu là có thể di chuyển
+            function clearHighlights() {
+                tiles.forEach(tile => {
+                    tile.classList.remove('highlight');
+                    tile.classList.remove('capture'); // Xóa cả lớp capture
+                });
+            }
+
+            // Đánh dấu các ô có thể di chuyển
+            function highlightValidMoves(row, col, piece, isWhite) {
+                clearHighlights();
+
+                // Tốt
+                if (piece === 'pawn') {
+                    const direction = isWhite ? -1 : 1; // Tốt trắng đi lên (-1), tốt đen đi xuống (+1)
+                    const startRow = isWhite ? 6 : 1; // Hàng bắt đầu của tốt trắng và đen
+                    const forwardTile1 = tiles[(row + direction) * 8 + col]; // Ô phía trước 1
+                    if (!forwardTile1.children.length) {
+                        forwardTile1.classList.add('highlight');
+                    }
+
+                    // Tốt được đi 2 ô nếu nó ở hàng ban đầu
+                    if (row === startRow) {
+                        const forwardTile2 = tiles[(row + 2 * direction) * 8 + col]; // Ô phía trước 2
+                        if (!forwardTile1.children.length && !forwardTile2.children.length) {
+                            forwardTile2.classList.add('highlight');
+                        }
+                    }
+
+                    // Kiểm tra ô chéo để ăn quân
+                    const diagonalLeft = tiles[(row + direction) * 8 + (col - 1)];
+                    const diagonalRight = tiles[(row + direction) * 8 + (col + 1)];
+
+                    if (col > 0 && diagonalLeft && diagonalLeft.children.length > 0 && diagonalLeft.children[0].getAttribute('data-color') !== currentPlayer) {
+                        diagonalLeft.classList.add('capture'); // Đánh dấu ô bên trái có thể ăn quân
+                    }
+                    if (col < 7 && diagonalRight && diagonalRight.children.length > 0 && diagonalRight.children[0].getAttribute('data-color') !== currentPlayer) {
+                        diagonalRight.classList.add('capture'); // Đánh dấu ô bên phải có thể ăn quân
+                    }
+                }
+
+                // Các quân cờ khác (Rook, Knight, Bishop, Queen, King) xử lý như cũ
+                if (piece === 'rook') {
+                    highlightRookMoves(row, col);
+                }
+                if (piece === 'knight') {
+                    highlightKnightMoves(row, col);
+                }
+                if (piece === 'bishop') {
+                    highlightBishopMoves(row, col);
+                }
+                if (piece === 'queen') {
+                    highlightRookMoves(row, col);
+                    highlightBishopMoves(row, col);
+                }
+                if (piece === 'king') {
+                    highlightKingMoves(row, col);
+                }
+            }
+
+
+            // Hàm đánh dấu các ô di chuyển hợp lệ cho xe (rook)
+            function highlightRookMoves(row, col) {
+                // Di chuyển theo hàng dọc
+                for (let r = row - 1; r >= 0; r--) {
+                    if (highlightTile(r, col)) break;
+                }
+                for (let r = row + 1; r < 8; r++) {
+                    if (highlightTile(r, col)) break;
+                }
+
+                // Di chuyển theo hàng ngang
+                for (let c = col - 1; c >= 0; c--) {
+                    if (highlightTile(row, c)) break;
+                }
+                for (let c = col + 1; c < 8; c++) {
+                    if (highlightTile(row, c)) break;
+                }
+            }
+
+            // Hàm đánh dấu các ô di chuyển hợp lệ cho mã (knight)
+            function highlightKnightMoves(row, col) {
+                const knightMoves = [
+                    [row - 2, col - 1], [row - 2, col + 1],
+                    [row - 1, col - 2], [row - 1, col + 2],
+                    [row + 1, col - 2], [row + 1, col + 2],
+                    [row + 2, col - 1], [row + 2, col + 1]
+                ];
+
+                knightMoves.forEach(([r, c]) => {
+                    if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+                        highlightTile(r, c);
+                    }
+                });
+            }
+
+            // Hàm đánh dấu các ô di chuyển hợp lệ cho tượng (bishop)
+            function highlightBishopMoves(row, col) {
+                // Di chuyển theo đường chéo
+                for (let r = row - 1, c = col - 1; r >= 0 && c >= 0; r--, c--) {
+                    if (highlightTile(r, c)) break;
+                }
+                for (let r = row - 1, c = col + 1; r >= 0 && c < 8; r--, c++) {
+                    if (highlightTile(r, c)) break;
+                }
+                for (let r = row + 1, c = col - 1; r < 8 && c >= 0; r++, c--) {
+                    if (highlightTile(r, c)) break;
+                }
+                for (let r = row + 1, c = col + 1; r < 8 && c < 8; r++, c++) {
+                    if (highlightTile(r, c)) break;
+                }
+            }
+
+            // Hàm đánh dấu các ô di chuyển hợp lệ cho vua (king)
+            function highlightKingMoves(row, col) {
+                const kingMoves = [
+                    [row - 1, col], [row + 1, col], [row, col - 1], [row, col + 1],
+                    [row - 1, col - 1], [row - 1, col + 1], [row + 1, col - 1], [row + 1, col + 1]
+                ];
+
+                kingMoves.forEach(([r, c]) => {
+                    if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+                        highlightTile(r, c);
+                    }
+                });
+            }
+
+            // Đánh dấu một ô có thể đi và kiểm tra xem có quân cờ cản đường không
+            // Đánh dấu một ô có thể đi và kiểm tra xem có quân cờ cản đường không
+            function highlightTile(row, col) {
+                const tile = tiles[row * 8 + col];
+                if (!tile.children.length) {
+                    tile.classList.add('highlight');
+                    return false; // Tiếp tục di chuyển qua ô này
+                } else if (tile.children[0].getAttribute('data-color') !== currentPlayer) {
+                    tile.classList.add('capture'); // Đánh dấu ô có quân địch có thể ăn
+                    return true; // Dừng lại vì có quân địch
+                } else {
+                    return true; // Dừng lại vì có quân mình
+                }
+            }
+
+
+            // Hàm di chuyển quân cờ và ăn quân địch
+            // Hàm di chuyển quân cờ và ăn quân địch
+            function handleTileClick(tile, row, col) {
+                if (selectedPiece && selectedTile && (tile.classList.contains('highlight') || tile.classList.contains('capture'))) {
+                    let capturedPiece = null;
+
+                    // Nếu ô đích có thể ăn quân
+                    if (tile.classList.contains('capture')) {
+                        capturedPiece = tile.children[0]; // Lấy quân cờ bị ăn
+                    }
+
+                    // Di chuyển quân cờ đã chọn
+                    selectedTile.removeChild(selectedPiece); // Xóa quân cờ từ ô trước
+                    tile.innerHTML = ''; // Xóa nội dung hiện tại của ô đích nếu có
+                    tile.appendChild(selectedPiece); // Di chuyển quân cờ đến ô đích mới
+
+                    // Xử lý quân bị ăn (nếu có)
+                    if (capturedPiece) {
+                        const capturedColor = capturedPiece.getAttribute('data-color');
+                        if (capturedColor === 'white') {
+                            whiteCaptured.appendChild(capturedPiece); // Đưa quân trắng bị ăn vào khu vực captured
+                        } else {
+                            blackCaptured.appendChild(capturedPiece); // Đưa quân đen bị ăn vào khu vực captured
+                        }
+                    }
+
+                    // Cập nhật trạng thái trò chơi
+                    selectedTile.classList.remove('selected');
+                    clearHighlights();
+                    selectedPiece = null;
+                    selectedTile = null;
+
+                    // Đổi lượt
+                    currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+                }
+            }
+
+            for (let i = 0; i < 64; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                tiles.push(tile);
+
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+
+                // Điều kiện đổi màu ô
+                if ((row % 2 === 0 && col % 2 === 0) || (row % 2 !== 0 && col % 2 !== 0)) {
+                    tile.style.backgroundColor = '#f0d9b5';  // Màu trắng
+                } else {
+                    tile.style.backgroundColor = '#b58863';  // Màu nâu
+                }
+
+                // Thêm quân cờ
+                if (row === 0) {
+                    const piece = createPiece(initialBoard[row][col], false); // Quân đen
+                    tile.appendChild(piece);
+                } else if (row === 1) {
+                    const piece = createPiece('pawn', false); // Tốt đen
+                    tile.appendChild(piece);
+                } else if (row === 6) {
+                    const piece = createPiece('pawn', true); // Tốt trắng
+                    tile.appendChild(piece);
+                } else if (row === 7) {
+                    const piece = createPiece(initialBoard[row][col], true); // Quân trắng
+                    tile.appendChild(piece);
+                }
+
+                tile.addEventListener('click', function () {
+                    // Nếu ô có quân cờ
+                    if (tile.children.length > 0) {
+                        const pieceColor = tile.children[0].getAttribute('data-color');
+
+                        // Kiểm tra xem quân cờ có cùng màu với lượt hiện tại không
+                        if (pieceColor === currentPlayer) {
+                            if (selectedPiece && selectedTile) {
+                                // Bỏ chọn quân cờ trước đó
+                                selectedTile.classList.remove('selected');
+                            }
+                            // Chọn quân cờ mới
+                            selectedPiece = tile.children[0];
+                            selectedTile = tile;
+                            tile.classList.add('selected');
+
+                            // Đánh dấu các ô di chuyển hợp lệ
+                            const piece = selectedPiece.getAttribute('data-piece');
+                            const isWhite = pieceColor === 'white';
+                            highlightValidMoves(row, col, piece, isWhite);
+                        }
+                    } else if (selectedPiece) {
+                        // Di chuyển quân cờ
+                        handleTileClick(tile, row, col);
+                    }
+                });
+
+                chessboard.appendChild(tile);
+            }
+        }
+    </script>
+</body>
+
+</html>

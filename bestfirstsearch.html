@@ -1,0 +1,166 @@
+    <!DOCTYPE html>
+    <html lang="vi">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BFS-Heuristic</title>
+        <style>
+        </style>
+    </head>
+
+    <body>
+        <h1>Kết quả tìm kiếm Best First Search với Heuristic</h1>
+        <h2>Đường đi:</h2>
+        <p id="duong-di"></p>
+        <h2>Chi phí:</h2>
+        <p id="chi-phi"></p>
+        <img src="image.png" width="600px" alt="Centered Image">
+        <script>
+            // Định nghĩa lớp HangDoiUuTien để quản lý hàng đợi ưu tiên
+            class HangDoiUuTien {
+                constructor() {
+                    this.cacPhanTu = [];
+                }
+
+                // Kiểm tra xem hàng đợi có rỗng không
+                isEmpty() {
+                    return this.cacPhanTu.length === 0;
+                }
+
+                // Thêm phần tử vào hàng đợi với mức ưu tiên
+                enqueue(mucUuTien, phanTu) {
+                    this.cacPhanTu.push({ mucUuTien, phanTu });
+                    // Sắp xếp các phần tử trong hàng đợi theo mức ưu tiên
+                    this.cacPhanTu.sort((a, b) => a.mucUuTien - b.mucUuTien);
+                    console.log(`Đã thêm phần tử vào hàng đợi: ${phanTu} với mức ưu tiên: ${mucUuTien}`);
+                }
+
+                // Xóa và trả về phần tử có mức ưu tiên cao nhất (ưu tiên thấp nhất)
+                dequeue() {
+                    const phanTu = this.cacPhanTu.shift().phanTu;
+                    console.log(`Đã lấy phần tử từ hàng đợi: ${phanTu}`);
+                    return phanTu;
+                }
+            }
+
+            // Hàm timKiemBestFirstSearch thực hiện tìm kiếm BFS với heuristic
+            function timKiemBestFirstSearch(doThi, batDau, dich, heuristic) {
+                // Khởi tạo hàng đợi ưu tiên với điểm ưu tiên bắt đầu là 0
+                const hangDoi = new HangDoiUuTien();
+                hangDoi.enqueue(heuristic[batDau], batDau);
+
+                // Khởi tạo các đối tượng để lưu trữ đường đi và chi phí đến các điểm
+                const diemTruoc = {}; // Lưu điểm trước đó trên đường đi đến mỗi điểm
+                const chiPhiDaDuyet = {}; // Lưu chi phí từ điểm xuất phát đến mỗi điểm
+
+                // Điểm bắt đầu không có điểm đến trước đó và chi phí là 0
+                diemTruoc[batDau] = null;
+                chiPhiDaDuyet[batDau] = 0;
+
+                console.log(`Khởi tạo: Điểm bắt đầu: ${batDau}`);
+
+                // Vòng lặp cho đến khi hàng đợi rỗng
+                while (!hangDoi.isEmpty()) {
+                    // Lấy điểm có mức ưu tiên thấp nhất từ hàng đợi
+                    const diemHienTai = hangDoi.dequeue();
+                    console.log(`------------------------------------------`);
+                    console.log(`Xử lý điểm hiện tại: ${diemHienTai}`);
+
+                    // Nếu điểm hiện tại là đích, kết thúc tìm kiếm
+                    if (diemHienTai === dich) {
+                        console.log(`Đã tìm thấy đích: ${dich}`);
+                        break;
+                    }
+
+                    // Duyệt qua tất cả các điểm kế tiếp từ điểm hiện tại
+                    for (const diemKeTiep in doThi[diemHienTai]) {
+                        // Nếu điểm kế tiếp chưa được duyệt
+                        if (!(diemKeTiep in chiPhiDaDuyet)) {
+                            const chiPhiMoi = chiPhiDaDuyet[diemHienTai] + doThi[diemHienTai][diemKeTiep];
+                            console.log(`Tính toán chi phí từ ${diemHienTai} đến ${diemKeTiep}: ${chiPhiMoi}`);
+
+                            // Cập nhật chi phí đến điểm kế tiếp và thêm vào hàng đợi
+                            chiPhiDaDuyet[diemKeTiep] = chiPhiMoi;
+                            hangDoi.enqueue(heuristic[diemKeTiep], diemKeTiep);
+                            // Cập nhật điểm đến trước đó của điểm kế tiếp
+                            diemTruoc[diemKeTiep] = diemHienTai;
+                        }
+                    }
+                }
+
+                // Tái tạo đường đi từ đích về điểm bắt đầu
+                let duongDi = [];
+                let hienTai = dich;
+                while (hienTai) {
+                    duongDi.push(hienTai);
+                    hienTai = diemTruoc[hienTai];
+                }
+                duongDi.reverse(); // Đảo ngược đường đi để có thứ tự từ điểm bắt đầu đến đích
+
+                // Tạo chuỗi đường đi kèm chi phí tại mỗi điểm
+                let duongDiVaChiPhi = duongDi.map((diem, index) => {
+                
+               qqqqreturn `${diem} (${heuristic[diem]})`; // Hiển thị chi phí giữa các điểm
+            }).join(' -> ');
+
+                console.log(`Đường đi tìm thấy: ${duongDiVaChiPhi}`);
+                console.log(`Chi phí từ ${batDau} đến ${dich}: ${chiPhiDaDuyet[dich]}`);
+
+                // Hiển thị kết quả trên trang web
+                document.getElementById('duong-di').textContent = duongDiVaChiPhi;
+                document.getElementById('chi-phi').textContent = chiPhiDaDuyet[dich];
+                // Trả về đường đi và chi phí đến đích
+                return { duongDi, chiPhi: chiPhiDaDuyet[dich] };
+            }
+
+            // Ví dụ về đồ thị và heuristic để sử dụng trong tìm kiếm Best First Search với heuristic
+            const doThiRumania = {
+                'Arad': { 'Zerind': 75, 'Sibiu': 140, 'Timisoara': 118 },
+                'Zerind': { 'Arad': 75, 'Oradea': 71 },
+                'Oradea': { 'Zerind': 71, 'Sibiu': 151 },
+                'Sibiu': { 'Arad': 140, 'Oradea': 151, 'Fagaras': 99, 'Rimnicu Vilcea': 80 },
+                'Timisoara': { 'Arad': 118, 'Lugoj': 111 },
+                'Lugoj': { 'Timisoara': 111, 'Mehadia': 70 },
+                'Mehadia': { 'Lugoj': 70, 'Drobeta': 75 },
+                'Drobeta': { 'Mehadia': 75, 'Craiova': 120 },
+                'Craiova': { 'Drobeta': 120, 'Rimnicu Vilcea': 146, 'Pitesti': 138 },
+                'Rimnicu Vilcea': { 'Sibiu': 80, 'Craiova': 146, 'Pitesti': 97 },
+                'Fagaras': { 'Sibiu': 99, 'Bucharest': 211 },
+                'Pitesti': { 'Rimnicu Vilcea': 97, 'Craiova': 138, 'Bucharest': 101 },
+                'Bucharest': { 'Fagaras': 211, 'Pitesti': 101, 'Giurgiu': 90 },
+                'Giurgiu': { 'Bucharest': 90 }
+            };
+
+            // Các giá trị heuristic cho các điểm trong đồ thị
+            const heuristic = {
+                'Arad': 366, 'Zerind': 374, 'Oradea': 380, 'Sibiu': 253,
+                'Timisoara': 329, 'Lugoj': 244, 'Mehadia': 241, 'Drobeta': 242,
+                'Craiova': 160, 'Rimnicu Vilcea': 193, 'Fagaras': 176, 'Pitesti': 100,
+                'Bucharest': 0, 'Giurgiu': 77, 'Hirsova': 151,
+                'Iasi': 226,
+                'Lugoj': 244,
+                'Mehadia': 241,
+                'Neamt': 234,
+                'Oradea': 380,
+                'Pitesti': 100,
+                'Rimnicu Vilcea': 193,
+                'Sibiu': 253,
+                'Timisoara': 329,
+                'Urziceni': 80,
+                'Vaslui': 199,
+                'Zerind': 374
+            };
+
+            // Chạy thuật toán Best First Search từ 'Arad' đến 'Bucharest'
+            const thanhPhoBatDau = 'Arad';
+            const thanhPhoDich = 'Bucharest';
+            const ketQua = timKiemBestFirstSearch(doThiRumania, thanhPhoBatDau, thanhPhoDich, heuristic);
+
+            // In kết quả đường đi và chi phí
+            console.log("Đường đi:", ketQua.duongDi);
+            console.log("Chi phí:", ketQua.chiPhi);
+        </script>
+    </body>
+
+    </html>
