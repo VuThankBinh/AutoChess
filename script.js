@@ -28,16 +28,16 @@ let chessCheck = true;
 let markedMoves = [];
 
 function setupGame() {
-    
-    board = [["wrA", "wnB", "wbC", "wq", "wk", "wbF", "wnG","wrH"],
-                ["wpA", "wpB", "wpC", "wpD", "wpE", "wpF", "wpG","wpH"],
-                ["", "", "", "", "", "", "",""],
-                ["", "", "", "", "", "", "",""],
-                ["", "", "", "", "", "", "",""],
-                ["", "", "", "", "", "", "",""],
-                ["bpA", "bpB", "bpC", "bpD","bpE","bpF", "bpG" ,"bpH"],
-                ["brA", "bnB", "bbC", "bq","bk","bbF", "bnG" ,"brH"]
-            ];
+
+    board = [["wrA", "wnB", "wbC", "wq", "wk", "wbF", "wnG", "wrH"],
+    ["wpA", "wpB", "wpC", "wpD", "wpE", "wpF", "wpG", "wpH"],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["bpA", "bpB", "bpC", "bpD", "bpE", "bpF", "bpG", "bpH"],
+    ["brA", "bnB", "bbC", "bq", "bk", "bbF", "bnG", "brH"]
+    ];
 }
 
 function reset() {
@@ -53,7 +53,7 @@ function setHumanMode() {
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
 
-    if(playMode != "h") {
+    if (playMode != "h") {
         playMode = "h";
 
         humanButton.style.backgroundColor = "#e68540";
@@ -68,10 +68,10 @@ function setComputerMode() {
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
 
-    if(playMode != "c") {
+    if (playMode != "c") {
         playMode = "c";
 
-        if(whitesTurn) {
+        if (whitesTurn) {
             humansColor = "w";
         } else {
             humansColor = "b";
@@ -88,17 +88,17 @@ function movePiece(newField) {
 
     newField = newField.parentElement;
 
-    if(markedMoves.includes(newField.id)) {
+    if (markedMoves.includes(newField.id)) {
 
         // get position object of new piece position
         let newFieldPosition = fieldIdToBoardPosition(newField.id);
 
         /* -------visually remove catched Piece-------*/
-        if(newField.classList.contains("catch")) {
+        if (newField.classList.contains("catch")) {
 
             // get piece that is about to be catched from board
             let catchedPiece = board[newFieldPosition.row]
-                [newFieldPosition.col];
+            [newFieldPosition.col];
 
             // delete ctached piece from dom
             let catchedPieceEm = document.getElementById(catchedPiece);
@@ -127,15 +127,15 @@ function movePiece(newField) {
         // get piece position object of piece to move
         let piecePositionOnBoard = givePosition(board, pieceOnFocus.id);
 
-        if(getPieceType(pieceOnFocus.id) == "wp" && newField.id.startsWith("8")) {
-            
+        if (getPieceType(pieceOnFocus.id) == "wp" && newField.id.startsWith("8")) {
+
             pieceOnFocus.id = "wq" + whitePawnSwapCounter;
             pieceOnFocus.src = "assets/Chess_qlt60.png";
 
             // increase pawn swap counter to avoid same ids
             whitePawnSwapCounter = whitePawnSwapCounter + "I";
 
-        } else if(getPieceType(pieceOnFocus.id) == "bp" && newField.id.startsWith("1")) {
+        } else if (getPieceType(pieceOnFocus.id) == "bp" && newField.id.startsWith("1")) {
 
             pieceOnFocus.id = "bq" + blackPawnSwapCounter;
             pieceOnFocus.src = "assets/Chess_qdt60.png";
@@ -145,12 +145,12 @@ function movePiece(newField) {
         }
 
         /*------ check if its was castling move and rook has to be moved-----*/
-        if(pieceOnFocus.id === "wk" && whiteCanCastle) {
-            if(newField.id === "1G") {
+        if (pieceOnFocus.id === "wk" && whiteCanCastle) {
+            if (newField.id === "1G") {
 
                 // move rook visually
                 let wKRook = document.getElementById("wrH");
-                
+
                 let pieceRow = wKRook.classList[1];
                 let pieceCol = wKRook.classList[2];
 
@@ -164,11 +164,11 @@ function movePiece(newField) {
                 board[0][5] = "wrH";
                 board[0][7] = "";
 
-            } else if(newField.id === "1C") {
+            } else if (newField.id === "1C") {
 
                 // move rook visually
                 let wQRook = document.getElementById("wrA");
-                
+
                 let pieceRow = wQRook.classList[1];
                 let pieceCol = wQRook.classList[2];
 
@@ -183,11 +183,11 @@ function movePiece(newField) {
                 board[0][0] = "";
 
             }
-        } else if(pieceOnFocus.id === "bk" && blackCanCastle) {
-            if(newField.id === "8G") {
+        } else if (pieceOnFocus.id === "bk" && blackCanCastle) {
+            if (newField.id === "8G") {
 
                 let bKRook = document.getElementById("brH");
-                
+
                 let pieceRow = bKRook.classList[1];
                 let pieceCol = bKRook.classList[2];
 
@@ -201,7 +201,7 @@ function movePiece(newField) {
                 board[7][5] = "brH";
                 board[7][7] = "";
 
-            } else if(newField.id === "8C") {
+            } else if (newField.id === "8C") {
 
                 let bQRook = document.getElementById("brA");
 
@@ -221,7 +221,7 @@ function movePiece(newField) {
         }
 
         /*------------updating castling abilities-----------*/
-        switch(pieceOnFocus.id) {
+        switch (pieceOnFocus.id) {
 
             case "wrA":
                 wQRookMoved = true;
@@ -230,11 +230,11 @@ function movePiece(newField) {
             case "wrH":
                 wKRookMoved = true;
                 break;
-            
+
             case "brA":
                 bQRookMoved = true;
                 break;
-            
+
             case "brH":
                 bKRookMoved = true;
                 break;
@@ -249,42 +249,42 @@ function movePiece(newField) {
         }
 
         /*--------if both rooks moved, player cant castle-----------*/
-        if(wQRookMoved && wKRookMoved && whiteCanCastle) {
+        if (wQRookMoved && wKRookMoved && whiteCanCastle) {
             whiteCanCastle = false;
-        } else if(bKRookMoved && bQRookMoved && blackCanCastle){
+        } else if (bKRookMoved && bQRookMoved && blackCanCastle) {
             blackCanCastle = false;
         }
 
         /* catch piece if en passant move is made */
-        if(enPassantPawn) {
-            if(pieceOnFocus.id.indexOf('wp') === 0) {
-                if(newFieldPosition.col === enPassantPawn.col && newFieldPosition.row === enPassantPawn.row + 1) {
-                    
+        if (enPassantPawn) {
+            if (pieceOnFocus.id.indexOf('wp') === 0) {
+                if (newFieldPosition.col === enPassantPawn.col && newFieldPosition.row === enPassantPawn.row + 1) {
+
                     let catchedPawn = document.getElementById(board[enPassantPawn.row][enPassantPawn.col]);
-    
+
                     catchedPawn.remove();
-    
+
                     board[enPassantPawn.row][enPassantPawn.col] = "";
                 }
-            } else if(pieceOnFocus.id.indexOf('bp') === 0) {
-                if(newFieldPosition.col === enPassantPawn.col && newFieldPosition.row === enPassantPawn.row - 1) {
-    
+            } else if (pieceOnFocus.id.indexOf('bp') === 0) {
+                if (newFieldPosition.col === enPassantPawn.col && newFieldPosition.row === enPassantPawn.row - 1) {
+
                     let catchedPawn = document.getElementById(board[enPassantPawn.row][enPassantPawn.col]);
-    
+
                     catchedPawn.remove();
-    
+
                     board[enPassantPawn.row][enPassantPawn.col] = "";
                 }
             }
         }
-        
+
         /* --------update en passant pawn if necessary------------*/
-        if(pieceOnFocus.id.indexOf('p') === 1 && Math.abs(piecePositionOnBoard.row - newFieldPosition.row) === 2) {
+        if (pieceOnFocus.id.indexOf('p') === 1 && Math.abs(piecePositionOnBoard.row - newFieldPosition.row) === 2) {
             enPassantPawn = newFieldPosition;
         } else {
             enPassantPawn = null;
         }
-        
+
         // put piece to move on new position
         board[newFieldPosition.row][newFieldPosition.col] = pieceOnFocus.id;
 
@@ -297,16 +297,16 @@ function movePiece(newField) {
 
         /*--------check if in vs computer mode and next move has to be done automatically--------*/
         // check if there are move lefts
-        if(playMode === "c") {
+        if (playMode === "c") {
 
-            if(whitesTurn && humansColor === "b") {
+            if (whitesTurn && humansColor === "b") {
                 makeComputerMove("w");
             };
 
-            if(!whitesTurn && humansColor === "w") {
+            if (!whitesTurn && humansColor === "w") {
                 makeComputerMove("b");
             }
-            
+
         }
 
     } else {
@@ -323,7 +323,7 @@ function makeComputerMove(computerColor) {
     let pieces = getAllActivePiecesOfPlayer(computerColor, board);
 
     /*------random search for a legit move----------*/
-    while(randomMarker == null && getAllPossibleMovesOfPlayer(computerColor, board) != 0) {
+    while (randomMarker == null && getAllPossibleMovesOfPlayer(computerColor, board) != 0) {
 
         let randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
 
@@ -338,7 +338,7 @@ function makeComputerMove(computerColor) {
         let allMarkers = document.getElementsByClassName("marker");
 
         // unmark piece if no possible moves
-        if(allMarkers.length === 0) {
+        if (allMarkers.length === 0) {
             deleteMarker();
             unmarkPiece();
         } else {
@@ -347,8 +347,8 @@ function makeComputerMove(computerColor) {
     }
 
     /*-----wait a few seconds so user can see move------ */
-    if(getAllPossibleMovesOfPlayer(computerColor, board) != 0) {
-        setTimeout(function(){ 
+    if (getAllPossibleMovesOfPlayer(computerColor, board) != 0) {
+        setTimeout(function () {
             randomMarker.click();
         }, 1500);
     }
@@ -362,14 +362,14 @@ function changeTurn() {
 
     let moveAmount;
 
-    if(whitesTurn) {
+    if (whitesTurn) {
 
         // change to blacks turn
         whitesTurn = false;
         em.innerHTML = "Blacks Turn";
 
-        moveAmount =  getAllPossibleMovesOfPlayer("b", board).length;
-        
+        moveAmount = getAllPossibleMovesOfPlayer("b", board).length;
+
     } else {
         whitesTurn = true;
         em.innerHTML = "Whites Turn"
@@ -377,9 +377,9 @@ function changeTurn() {
         moveAmount = getAllPossibleMovesOfPlayer("w", board).length;
     }
 
-    if(moveAmount === 0) {
+    if (moveAmount === 0) {
 
-        if(whitesTurn && checkIfPlayerIsInChess("w", board)) {
+        if (whitesTurn && checkIfPlayerIsInChess("w", board)) {
             moveCounter.innerHTML = "Check Mate, Black Wins!";
 
         } else if (!whitesTurn && checkIfPlayerIsInChess("b", board)) {
@@ -399,22 +399,22 @@ function showMoves(element) {
 
     let activeBoard = board;
 
-    if((emId.startsWith("w") && whitesTurn) || (emId.startsWith("b") && !whitesTurn)) {
+    if ((emId.startsWith("w") && whitesTurn) || (emId.startsWith("b") && !whitesTurn)) {
 
-        if(pieceOnFocus) {
-    
+        if (pieceOnFocus) {
+
             deleteMarker();
             unmarkPiece();
         } else {
-    
+
             pieceOnFocus = element;
-    
+
             let piecePosition = givePosition(activeBoard, element.id);
-    
+
             let pieceType = getPieceType(element.id);
-    
+
             let legalMoves = getLegalMoves(piecePosition, pieceType, activeBoard);
-    
+
             markPieceOnFocus(piecePosition);
             markLegalMoves(legalMoves);
         }
@@ -423,33 +423,39 @@ function showMoves(element) {
 
 function checkIfPieceIsOnField(position, activeBoard) {
 
-    if(activeBoard[position.row][position.col]) {
+    if (activeBoard[position.row][position.col]) {
         return true;
     } else {
         return false;
     }
 }
+function getColorOfPieceAtPosition(position, activeBoard) {
+    const piece = activeBoard[position.row][position.col];
 
-function getColorOfPieceAtPosition(position, board) {
+    // Kiểm tra nếu vị trí không có quân cờ (undefined hoặc null)
+    if (!piece) {
+        return null; // Trả về null nếu không có quân cờ nào ở vị trí này
+    }
 
-    let piece = board[position.row][position.col];
-    return piece.charAt(0);
+    // Giả sử quân trắng bắt đầu bằng "w" và quân đen bắt đầu bằng "b"
+    return piece.charAt(0); // Lấy ký tự đầu tiên để xác định màu của quân cờ
 }
+
 
 function makeMoveAndCheckIfChess(piecePosition, newPosition, playerColor) {
 
-    let tempBoard = [["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "","","", "" ,""],
-        ["", "", "", "","","", "" ,""]
+    let tempBoard = [["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""]
     ];
 
-    for(let i = 0; i < board.length; i++) {
-        for(let j = 0; j < board[i].length; j++) {
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[i].length; j++) {
             tempBoard[i][j] = board[i][j];
         }
     }
@@ -464,18 +470,18 @@ function makeMoveAndCheckIfChess(piecePosition, newPosition, playerColor) {
 
 function makeMoveAndReturnNewBoard(piecePosition, newPosition) {
 
-    let tempBoard = [["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "", "", "", "",""],
-        ["", "", "", "","","", "" ,""],
-        ["", "", "", "","","", "" ,""]
+    let tempBoard = [["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""]
     ];
 
-    for(let i = 0; i < board.length; i++) {
-        for(let j = 0; j < board[i].length; j++) {
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[i].length; j++) {
             tempBoard[i][j] = board[i][j];
         }
     }
@@ -486,1284 +492,194 @@ function makeMoveAndReturnNewBoard(piecePosition, newPosition) {
 
     return tempBoard;
 }
-
+// Hàm để lấy các nước đi hợp lệ cho một quân cờ
 function getLegalMoves(piecePosition, pieceType, activeBoard) {
+    const playerColor = getColorOfPieceAtPosition(piecePosition, activeBoard);
+    const legalMoves = [];
 
-    let playerColor = getColorOfPieceAtPosition(piecePosition, activeBoard);
+    // Hàm kiểm tra kiểu di chuyển hợp lệ cho từng quân cờ
+    const isValidMoveForPiece = (pieceType, piecePosition, targetPosition) => {
+        const rowDelta = Math.abs(targetPosition.row - piecePosition.row);
+        const colDelta = Math.abs(targetPosition.col - piecePosition.col);
 
-    let legalMoves = [];
+        switch (pieceType) {
+            case "r": // Quân xe chỉ đi ngang hoặc dọc
+                return (rowDelta === 0 || colDelta === 0);
 
-    let position;
+            case "n": // Quân mã đi hình chữ L
+                return (rowDelta === 2 && colDelta === 1) || (rowDelta === 1 && colDelta === 2);
 
-    switch(pieceType) {
+            case "b": // Quân tượng đi chéo
+                return rowDelta === colDelta;
 
+            case "q": // Quân hậu đi ngang, dọc hoặc chéo
+                return (rowDelta === colDelta) || (rowDelta === 0 || colDelta === 0);
+
+            case "k": // Quân vua đi 1 ô theo bất kỳ hướng nào
+                return (rowDelta <= 1 && colDelta <= 1);
+
+            case "wp": // Quân tốt trắng
+            case "bp": // Quân tốt đen
+                const direction = pieceType === "wp" ? 1 : -1; // Tốt trắng đi lên, tốt đen đi xuống
+                const startRow = pieceType === "wp" ? 1 : 6; // Hàng bắt đầu của tốt trắng là 1, tốt đen là 6
+
+                // Di chuyển thẳng
+                if (colDelta === 0) {
+                    if (rowDelta === 1 && !checkIfPieceIsOnField(targetPosition, activeBoard)) {
+                        return true; // Đi 1 ô thẳng nếu không bị chặn
+                    }
+                    if (rowDelta === 2 && piecePosition.row === startRow && !checkIfPieceIsOnField(targetPosition, activeBoard)) {
+                        const betweenPosition = { row: piecePosition.row + direction, col: piecePosition.col };
+                        if (!checkIfPieceIsOnField(betweenPosition, activeBoard)) {
+                            return true; // Đi 2 ô thẳng khi không bị chặn ở cả hai ô
+                        }
+                    }
+                }
+
+                // Bắt chéo
+                if (rowDelta === 1 && colDelta === 1) {
+                    const targetColor = getColorOfPieceAtPosition(targetPosition, activeBoard);
+                    if (targetColor && targetColor !== getColorOfPieceAtPosition(piecePosition, activeBoard)) {
+                        return true; // Bắt quân theo đường chéo
+                    }
+                    // Kiểm tra bắt qua đường (en passant)
+                    if (enPassantPawn && targetPosition.row === enPassantPawn.row && targetPosition.col === enPassantPawn.col) {
+                        return true; // Bắt qua đường (en passant)
+                    }
+                }
+
+                return false; // Nếu không hợp lệ thì trả về false
+
+            default:
+                return false; // Nếu không xác định được loại quân cờ, coi là sai
+            // Nếu không xác định được loại quân cờ, coi là sai
+        }
+    };
+
+    // Hàm hỗ trợ để kiểm tra xem một nước đi có hợp lệ không và thêm vào legalMoves
+    const addMoveIfValid = (position) => {
+        const targetColor = getColorOfPieceAtPosition(position, activeBoard);
+        // Kiểm tra xem di chuyển có hợp lệ cho loại quân cờ không
+        if (isValidMoveForPiece(pieceType, piecePosition, position) &&
+            targetColor !== playerColor &&
+            (!chessCheck || !makeMoveAndCheckIfChess(piecePosition, position, playerColor))) {
+            legalMoves.push(position);
+            return targetColor !== null; // Trả về true nếu nước đi bắt được quân
+        }
+        return false;
+    };
+
+    // Hàm hỗ trợ để kiểm tra các nước đi theo một hướng cụ thể
+    const checkDirection = (rowDelta, colDelta, maxSteps = 7) => {
+        for (let i = 1; i <= maxSteps; i++) {
+            const position = {
+                row: piecePosition.row + rowDelta * i,
+                col: piecePosition.col + colDelta * i
+            };
+            if (position.row < 0 || position.row >= 8 || position.col < 0 || position.col >= 8) break;
+            if (addMoveIfValid(position)) break;
+            // Nếu gặp quân cờ (kể cả quân của đối phương), dừng kiểm tra hướng này
+            if (getColorOfPieceAtPosition(position, activeBoard) !== null) break;
+        }
+    };
+
+    switch (pieceType) {
         case "wp":
-        // implement en passant
-
-            if(piecePosition.row === 1) {
-
-                // diagonal catches
-                for(let k = -1; k < 2; k = k+2) {
-
-                    position = {
-                        row: piecePosition.row+1,
-                        col: piecePosition.col+k
-                    };
-
-                    // check if a piece sits at a front diagonal field
-                    if(checkIfPieceIsOnField(position, activeBoard)) {
-
-                        // check if piece is of opposite color
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // with this move player would still be in chess position or set self in chess
-                                if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    continue;
-                                }
-                            }
-                            legalMoves.push(position);
-
-                        }
-                    } else {
-                        continue;
-                    }
-                }
-                
-
-                for(let i = 1; i <= 2; i++) {
-
-                    position = {
-                        row: piecePosition.row+i,
-                        col: piecePosition.col
-                    };
-
-                    if(checkIfPieceIsOnField(position, activeBoard)) {
-
-                        break;
-                    } else {
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                continue;
-                            }
-                        }
-                        legalMoves.push(position);
-
-                    }
-                }
-
-            } else {
-                
-                if(piecePosition.row+1 < 8) {
-                    
-                    // check if a piece can be catched diagonal
-                    for(let k = -1; k < 2; k = k+2) {
-
-                        position = {
-                            row: piecePosition.row+1,
-                            col: piecePosition.col+k
-                        };
-
-                        // check if a piece sits at a front diagonal field
-                        if(checkIfPieceIsOnField(position, activeBoard)) {
-
-                            // check if piece is of opposite color
-                            if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                                if(chessCheck) {
-
-                                    // with this move player would still be in chess position or set self in chess
-                                    if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                        continue;
-                                    }
-                                }
-                                legalMoves.push(position);
-
-                            }
-                        } else if (enPassantPawn){
-                            /* check if diagonal en passant move is legal */
-                            if(position.col === enPassantPawn.col && position.row === enPassantPawn.row + 1) {
-
-                                if(chessCheck) {
-
-                                    // with this move player would still be in chess position or set self in chess
-                                    if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                        continue;
-                                    }
-                                }
-                                legalMoves.push(position);
-                            }
-                        } else {
-                            continue;
-                        }
-                    }
-                    
-                    position = {
-                        row: piecePosition.row+1,
-                        col: piecePosition.col
-                    };
-    
-                    if(!checkIfPieceIsOnField(position, activeBoard)) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(!makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                legalMoves.push(position);
-                            }
-                        }
-                    }
-                }   
-            }
-            break;
-
         case "bp":
-        
-            if(piecePosition.row === 6) {
+            // Nước đi của quân tốt
+            const direction = pieceType === "wp" ? 1 : -1; // wp (trắng) đi lên, bp (đen) đi xuống
+            const startRow = pieceType === "wp" ? 1 : 6; // Hàng bắt đầu của tốt trắng là 1, tốt đen là 6
 
-                // diagonal catches
-                for(let k = -1; k < 2; k = k+2) {
+            // Nước đi thẳng
+            const forwardOne = { row: piecePosition.row + direction, col: piecePosition.col };
+            if (!checkIfPieceIsOnField(forwardOne, activeBoard)) {
+                // Nếu ô phía trước trống thì thêm vào danh sách nước đi
+                addMoveIfValid(forwardOne);
 
-                    position = {
-                        row: piecePosition.row-1,
-                        col: piecePosition.col+k
-                    };
-
-                    // check if a piece sits at a front diagonal field
-                    if(checkIfPieceIsOnField(position, activeBoard)) {
-
-                        // check if piece is of opposite color
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // with this move player would still be in chess position or set self in chess
-                                if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    continue;
-                                }
-                            }
-                            legalMoves.push(position);
-
-                        }
-                    } else {
-                        continue;
+                // Nếu quân tốt ở hàng bắt đầu, kiểm tra di chuyển 2 ô
+                if (piecePosition.row === startRow) {
+                    const forwardTwo = { row: piecePosition.row + 2 * direction, col: piecePosition.col };
+                    if (!checkIfPieceIsOnField(forwardTwo, activeBoard)) {
+                        addMoveIfValid(forwardTwo);
                     }
                 }
-
-                for(let i = 1; i <= 2; i++) {
-
-                    position = {
-                        row: piecePosition.row-i,
-                        col: piecePosition.col
-                    };
-
-                    if(checkIfPieceIsOnField(position, activeBoard)) {
-
-                        break;
-                    } else {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                continue;
-                            }
-                        }
-                        legalMoves.push(position);
-
-                    }
-                }
-
-            } else {
-
-                if(piecePosition.row-1 >= 0) {
-                    
-                    // check if a piece can be catched diagonal
-                    for(let k = -1; k < 2; k = k+2) {
-
-                        position = {
-                            row: piecePosition.row-1,
-                            col: piecePosition.col+k
-                        };
-
-                        // check if a piece sits at a front diagonal field
-                        if(checkIfPieceIsOnField(position, activeBoard)) {
-
-                            // check if piece is of opposite color
-                            if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                                if(chessCheck) {
-
-                                    // with this move player would still be in chess position or set self in chess
-                                    if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                        continue;
-                                    }
-                                }
-                                legalMoves.push(position);
-
-                            }
-                        } else if (enPassantPawn){
-                            /* check if diagonal en passant move is legal */
-                            if(position.col === enPassantPawn.col && position.row === enPassantPawn.row - 1) {
-
-                                if(chessCheck) {
-
-                                    // with this move player would still be in chess position or set self in chess
-                                    if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                        continue;
-                                    }
-                                }
-                                legalMoves.push(position);
-                            }
-                        } else {
-                            continue;
-                        }
-                    }
-                    
-                    position = {
-                        row: piecePosition.row-1,
-                        col: piecePosition.col
-                    };
-    
-                    if(!checkIfPieceIsOnField(position, activeBoard)) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(!makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                legalMoves.push(position);
-                            }
-                        }
-                    }
-                }   
             }
+
+            // Bắt chéo
+            [[-1, 1], [1, 1]].forEach(([colDelta, rowDelta]) => {
+                const position = {
+                    row: piecePosition.row + direction * rowDelta,
+                    col: piecePosition.col + colDelta
+                };
+
+                // Kiểm tra nếu có quân của đối phương hoặc enPassant
+                if (getColorOfPieceAtPosition(position, activeBoard) !== playerColor ||
+                    (enPassantPawn && position.col === enPassantPawn.col &&
+                        position.row === enPassantPawn.row + direction)) {
+                    addMoveIfValid(position);
+                }
+            });
             break;
 
         case "n":
-
-            for(let j = -1; j < 2; j++) {
-                if(piecePosition.row+2 < 8) {
-
-                    if(j != 0 && piecePosition.col+j >= 0 && piecePosition.col+j < 8) {
-
-                        position = {
-                            row: piecePosition.row+2,
-                            col: piecePosition.col+j
-                        };
-                        
-                        // check if piece is opposite color => catch 
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // with this move player would still be in chess position or set self in chess
-                                if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    continue;
-                                }
-                            }
-                            legalMoves.push(position);
-
-
-                        }
-                    }
-                }    
-            }
-
-            for(let j = -1; j < 2; j++) {
-                if(piecePosition.row-2 >= 0) {
-
-                    if(j != 0 && piecePosition.col+j >= 0 && piecePosition.col+j < 8) {
-
-                        position = {
-                            row: piecePosition.row-2,
-                            col: piecePosition.col+j
-                        };
-
-                        // check if piece is opposite color => catch 
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // with this move player would still be in chess position or set self in chess
-                                if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    continue;
-                                }
-                            }
-
-                            legalMoves.push(position);
-                        }
-                    }
-                }   
-            }
-
-            for(let j = -1; j < 2; j++) {
-                if(piecePosition.col+2 < 8) {
-
-                    if(j != 0 && piecePosition.row+j >= 0 && piecePosition.row+j < 8) {
-
-                        position = {
-                            row: piecePosition.row+j,
-                            col: piecePosition.col+2,
-                        };
-
-                        // check if piece is opposite color => catch 
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // with this move player would still be in chess position or set self in chess
-                                if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    continue;
-                                }
-                            }
-
-                            legalMoves.push(position);
-                        }
-                    }
-                }   
-            }
-
-            for(let j = -1; j < 2; j++) {
-                if(piecePosition.col-2 >= 0) {
-
-                    if(j != 0 && piecePosition.row+j >= 0 && piecePosition.row+j < 8) {
-
-                        position = {
-                            row: piecePosition.row+j,
-                            col: piecePosition.col-2,
-                        };
-
-                        // check if piece is opposite color => catch 
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // with this move player would still be in chess position or set self in chess
-                                if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    continue;
-                                }
-                            }
-
-                            legalMoves.push(position);
-                        }
-                    }
-                }   
-            }
+            // Nước đi của quân mã
+            [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]].forEach(([rowDelta, colDelta]) => {
+                const position = {
+                    row: piecePosition.row + rowDelta,
+                    col: piecePosition.col + colDelta
+                };
+                if (position.row >= 0 && position.row < 8 && position.col >= 0 && position.col < 8) {
+                    addMoveIfValid(position);
+                }
+            });
             break;
-        
+
         case "b":
-
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row+j < 8 && piecePosition.col+j < 8) {
-                    position = {
-                        row: piecePosition.row+j,
-                        col: piecePosition.col+j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    }  else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }    
-
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row+j < 8 && piecePosition.col-j >= 0) {
-                    position = {
-                        row: piecePosition.row+j,
-                        col: piecePosition.col-j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    }  else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }
-
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row-j >= 0 && piecePosition.col-j >= 0) {
-                    position = {
-                        row: piecePosition.row-j,
-                        col: piecePosition.col-j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    }  else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }
-
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row-j >= 0 && piecePosition.col+j < 8) {
-                    position = {
-                        row: piecePosition.row-j,
-                        col: piecePosition.col+j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }
-
+            // Nước đi của quân tượng
+            [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([rowDelta, colDelta]) => checkDirection(rowDelta, colDelta));
             break;
 
         case "r":
-
-            for(let j = piecePosition.row+1; j < 8; j++) {  
-                    
-                position = {
-                    row: j,
-                    col: piecePosition.col
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                } 
-            }
-
-            for(let j = piecePosition.row-1; j >= 0; j--) {
-                        
-                position = {
-                    row: j,
-                    col: piecePosition.col
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            for(let j = piecePosition.col+1; j < 8; j++) {
-                        
-                position = {
-                    row: piecePosition.row,
-                    col: j
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            for(let j = piecePosition.col-1; j >= 0; j--) {
-                        
-                position = {
-                    row: piecePosition.row,
-                    col: j
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
+            // Nước đi của quân xe
+            [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([rowDelta, colDelta]) => checkDirection(rowDelta, colDelta));
             break;
 
         case "q":
-
-            /*-------rook movement---------*/
-            for(let j = piecePosition.row+1; j < 8; j++) {  
-                    
-                position = {
-                    row: j,
-                    col: piecePosition.col
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                } 
-            }
-
-            for(let j = piecePosition.row-1; j >= 0; j--) {
-                        
-                position = {
-                    row: j,
-                    col: piecePosition.col
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            for(let j = piecePosition.col+1; j < 8; j++) {
-                        
-                position = {
-                    row: piecePosition.row,
-                    col: j
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            for(let j = piecePosition.col-1; j >= 0; j--) {
-                        
-                position = {
-                    row: piecePosition.row,
-                    col: j
-                }
-
-                let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                if(clr != playerColor) {
-
-                    if(chessCheck) {
-
-                        // with this move player would still be in chess position or set self in chess
-                        if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                            // if there's a collision at new position end here
-                            if(clr) {
-                                break;
-                            // if there's no coliision next move could still be valid
-                            } else {
-                                continue;
-                            }
-                        }
-                    }
-
-                    legalMoves.push(position);
-
-                    if(clr) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-
-            /*-------bishop movement---------*/
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row+j < 8 && piecePosition.col+j < 8) {
-                    position = {
-                        row: piecePosition.row+j,
-                        col: piecePosition.col+j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    }  else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }    
-
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row+j < 8 && piecePosition.col-j >= 0) {
-                    position = {
-                        row: piecePosition.row+j,
-                        col: piecePosition.col-j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    }  else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }
-
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row-j >= 0 && piecePosition.col-j >= 0) {
-                    position = {
-                        row: piecePosition.row-j,
-                        col: piecePosition.col-j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    }  else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }
-
-            for(let j = 1; j < 8; j++) {
-
-                if(piecePosition.row-j >= 0 && piecePosition.col+j < 8) {
-                    position = {
-                        row: piecePosition.row-j,
-                        col: piecePosition.col+j
-                    }
-
-                    let clr = getColorOfPieceAtPosition(position, activeBoard);
-
-                    if(clr != playerColor) {
-
-                        if(chessCheck) {
-
-                            // with this move player would still be in chess position or set self in chess
-                            if(makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                // if there's a collision at new position end here
-                                if(clr) {
-                                    break;
-                                // if there's no coliision next move could still be valid
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        legalMoves.push(position);
-
-                        if(clr) {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-
-                } else {
-                    // out of bounds
-                    break;
-                }   
-            }
-
+            // Nước đi của quân hậu (kết hợp của tượng và xe)
+            [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]].forEach(([rowDelta, colDelta]) => checkDirection(rowDelta, colDelta));
             break;
 
         case "k":
-
-            /*------ white castling moves */
-            if(playerColor === "w" && whiteCanCastle) {
-
-                if(!wKRookMoved && activeBoard[0][5] === "" && activeBoard[0][6] === "") {
-                    
-                    position = {
-                        row: piecePosition.row,
-                        col : piecePosition.col+2
-                    };
-
-                    /* --- check castling rules for temporary loss of castling ability */
-                    let illegalMove = false;
-
-                    // king in chess 
-                    let opponentMoves = getAllPossibleMovesOfPlayer("b", board);
-
-                    for(let move of opponentMoves) {
-                        if(move.row === 0 && move.col === 4) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king crosses a field that can be captured
-                    let tempPosition = {
-                        row: piecePosition.row,
-                        col: piecePosition.col+1
-                    };
-
-                    let boardAfterTempMove = makeMoveAndReturnNewBoard(piecePosition, tempPosition);
-                    let opponentMovesAfterTempMove = getAllPossibleMovesOfPlayer("b", boardAfterTempMove);
-
-                    for(let move of opponentMovesAfterTempMove) {
-                        if(move.row === 0 && move.col === 5) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king in chess position after castling
-                    let boardAfterMove = makeMoveAndReturnNewBoard(piecePosition, position);
-                    let opponentMovesAfterMove = getAllPossibleMovesOfPlayer("b", boardAfterMove);
-
-                    for(let move of opponentMovesAfterMove) {
-                        if(move.row === 0 && move.col === 6) {
-                            illegalMove = true;
-                        }
-                    }   
-
-                    if(!illegalMove) {
-                        legalMoves.push(position);
-                    }
+            // Nước đi của quân vua
+            [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]].forEach(([rowDelta, colDelta]) => {
+                const position = {
+                    row: piecePosition.row + rowDelta,
+                    col: piecePosition.col + colDelta
+                };
+                if (position.row >= 0 && position.row < 8 && position.col >= 0 && position.col < 8) {
+                    addMoveIfValid(position);
                 }
+            });
 
-                if(!wQRookMoved && activeBoard[0][1] === "" && activeBoard[0][2] === "" && activeBoard[0][3] === "") {
-
-                    position = {
-                        row: piecePosition.row,
-                        col : piecePosition.col-2
-                    };
-
-                    /* --- check castling rules for temporary loss of castling ability */
-                    let illegalMove = false;
-
-                    // king in chess 
-                    let opponentMoves = getAllPossibleMovesOfPlayer("b", board);
-
-                    for(let move of opponentMoves) {
-                        if(move.row === 0 && move.col === 4) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king crosses a field that can be captured
-                    let tempPosition = {
-                        row: piecePosition.row,
-                        col: piecePosition.col-1
-                    };
-
-                    let boardAfterTempMove = makeMoveAndReturnNewBoard(piecePosition, tempPosition);
-                    let opponentMovesAfterTempMove = getAllPossibleMovesOfPlayer("b", boardAfterTempMove);
-
-                    for(let move of opponentMovesAfterTempMove) {
-                        if(move.row === 0 && move.col === 3) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king in chess position after castling
-                    let boardAfterMove = makeMoveAndReturnNewBoard(piecePosition, position);
-                    let opponentMovesAfterMove = getAllPossibleMovesOfPlayer("b", boardAfterMove);
-
-                    for(let move of opponentMovesAfterMove) {
-                        if(move.row === 0 && move.col === 2) {
-                            illegalMove = true;
-                        }
-                    }   
-
-                    if(!illegalMove) {
-                        legalMoves.push(position);
-                    }
+            // Nước nhập thành (đã đơn giản hóa, bạn có thể cần thêm kiểm tra)
+            if ((playerColor === "w" && whiteCanCastle) || (playerColor === "b" && blackCanCastle)) {
+                const row = playerColor === "w" ? 0 : 7;
+                if (!activeBoard[row][5] && !activeBoard[row][6] &&
+                    (playerColor === "w" ? !wKRookMoved : !bKRookMoved)) {
+                    legalMoves.push({ row, col: piecePosition.col + 2 });
                 }
-            } else if(playerColor === "b" && blackCanCastle) {
-
-                if(!bKRookMoved && activeBoard[7][5] === "" && activeBoard[7][6] === "") {
-
-                    position = {
-                        row: piecePosition.row,
-                        col : piecePosition.col+2
-                    };
-
-                    /* --- check castling rules for temporary loss of castling ability */
-                    let illegalMove = false;
-
-                    // king in chess 
-                    let opponentMoves = getAllPossibleMovesOfPlayer("w", board);
-
-                    for(let move of opponentMoves) {
-                        if(move.row === 7 && move.col === 4) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king crosses a field that can be captured
-                    let tempPosition = {
-                        row: piecePosition.row,
-                        col: piecePosition.col+1
-                    };
-
-                    let boardAfterTempMove = makeMoveAndReturnNewBoard(piecePosition, tempPosition);
-                    let opponentMovesAfterTempMove = getAllPossibleMovesOfPlayer("w", boardAfterTempMove);
-
-                    for(let move of opponentMovesAfterTempMove) {
-                        if(move.row === 7 && move.col === 5) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king in chess position after castling
-                    let boardAfterMove = makeMoveAndReturnNewBoard(piecePosition, position);
-                    let opponentMovesAfterMove = getAllPossibleMovesOfPlayer("w", boardAfterMove);
-
-                    for(let move of opponentMovesAfterMove) {
-                        if(move.row === 7 && move.col === 6) {
-                            illegalMove = true;
-                        }
-                    }   
-
-                    if(!illegalMove) {
-                        legalMoves.push(position);
-                    }
-                }
-
-                if(!bQRookMoved && activeBoard[7][1] === "" && activeBoard[7][2] === "" && activeBoard[7][3] === "") {
-
-                    position = {
-                        row: piecePosition.row,
-                        col : piecePosition.col-2
-                    };
-
-                    /* --- check castling rules for temporary loss of castling ability */
-                    let illegalMove = false;
-
-                    // king in chess 
-                    let opponentMoves = getAllPossibleMovesOfPlayer("w", board);
-
-                    for(let move of opponentMoves) {
-                        if(move.row === 7 && move.col === 4) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king crosses a field that can be captured
-                    let tempPosition = {
-                        row: piecePosition.row,
-                        col: piecePosition.col-1
-                    };
-
-                    let boardAfterTempMove = makeMoveAndReturnNewBoard(piecePosition, tempPosition);
-                    let opponentMovesAfterTempMove = getAllPossibleMovesOfPlayer("w", boardAfterTempMove);
-
-                    for(let move of opponentMovesAfterTempMove) {
-                        if(move.row === 7 && move.col === 3) {
-                            illegalMove = true;
-                        }
-                    }
-
-                    // king in chess position after castling
-                    let boardAfterMove = makeMoveAndReturnNewBoard(piecePosition, position);
-                    let opponentMovesAfterMove = getAllPossibleMovesOfPlayer("w", boardAfterMove);
-
-                    for(let move of opponentMovesAfterMove) {
-                        if(move.row === 7 && move.col === 2) {
-                            illegalMove = true;
-                        }
-                    }   
-
-                    if(!illegalMove) {
-                        legalMoves.push(position);
-                    }
+                if (!activeBoard[row][1] && !activeBoard[row][2] && !activeBoard[row][3] &&
+                    (playerColor === "w" ? !wQRookMoved : !bQRookMoved)) {
+                    legalMoves.push({ row, col: piecePosition.col - 2 });
                 }
             }
-
-            for(let j = -1; j < 2; j++) {
-
-                if(j == 0) {
-                    
-                    if(piecePosition.col-1 >= 0 && piecePosition.col-1 < 8) {
-
-                        position = {
-                            row: piecePosition.row,
-                            col : piecePosition.col-1
-                        };
-
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // this move doesnt set player in chess
-                                if(!makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    legalMoves.push(position);
-                                }
-                            } else {
-                                legalMoves.push(position);
-                            }
-                        }
-                        
-                    }
-
-                    if(piecePosition.col+1 >= 0 && piecePosition.col+1 < 8) {
-
-                        position = {
-                            row: piecePosition.row,
-                            col : piecePosition.col+1
-                        };
-
-                        if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                            if(chessCheck) {
-
-                                // this move doesnt set player in chess
-                                if(!makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                    legalMoves.push(position);
-                                }
-                            } else {
-                                legalMoves.push(position);
-                            }
-                        }
-                    }
-                    
-                } else {
-
-                    if(piecePosition.row+j >= 0 && piecePosition.row+j < 8) {
-                        
-                        for( let k = -1; k < 2; k++) {
-
-                            if(piecePosition.col+k >= 0 && piecePosition.col+k < 8) {
-                                position = {
-                                    row: piecePosition.row+j,
-                                    col : piecePosition.col+k
-                                };
-
-                                if(getColorOfPieceAtPosition(position, activeBoard) != playerColor) {
-
-                                    if(chessCheck) {
-
-                                        // this move doesnt set player in chess
-                                        if(!makeMoveAndCheckIfChess(piecePosition, position, playerColor)) {
-                                            legalMoves.push(position);
-                                        }
-                                    } else {
-                                        legalMoves.push(position);
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // out of bounds
-                        continue;
-                    }
-                }
-            }
-
             break;
     }
+
     return legalMoves;
 }
+
+
 
 
 function deleteMarker() {
@@ -1772,11 +688,11 @@ function deleteMarker() {
 
     let captureFields = document.getElementsByClassName("catch");
 
-    while(marker[0]) {
+    while (marker[0]) {
         marker[0].remove();
     }
 
-    while(captureFields[0]) {
+    while (captureFields[0]) {
         captureFields[0].classList.remove("catch");
     }
 
@@ -1787,13 +703,13 @@ function getFieldFromPosition(position) {
 
     let row = position.row + 1;
     let col;
-    
-    switch(position.col) {
+
+    switch (position.col) {
 
         case 0:
-        	col = "A";
+            col = "A";
             break;
-            
+
         case 1:
             col = "B";
             break;
@@ -1823,7 +739,7 @@ function getFieldFromPosition(position) {
             break;
     }
 
-    return row+col;
+    return row + col;
 }
 
 function markPieceOnFocus(piecePosition) {
@@ -1848,7 +764,7 @@ function unmarkPiece() {
 
 function markLegalMoves(positions) {
 
-    for(let position of positions) {
+    for (let position of positions) {
 
         let boardPosition = getFieldFromPosition(position);
 
@@ -1856,7 +772,7 @@ function markLegalMoves(positions) {
 
         let field = document.getElementById(boardPosition);
 
-        if(checkIfPieceIsOnField(position, board)) {
+        if (checkIfPieceIsOnField(position, board)) {
 
             field.classList.add("catch");
         }
@@ -1876,7 +792,7 @@ function getPieceType(id) {
 
     let arr = Array.from(id);
 
-    if(arr[1] === 'p') {
+    if (arr[1] === 'p') {
         return arr[0] + arr[1];
     } else {
         return arr[1];
@@ -1886,10 +802,10 @@ function getPieceType(id) {
 
 function givePosition(boardArray, elementId) {
 
-    for(let i = 0; i < boardArray.length; i++) {
-        for(let j = 0; j < boardArray[i].length; j++) {
+    for (let i = 0; i < boardArray.length; i++) {
+        for (let j = 0; j < boardArray[i].length; j++) {
 
-            if(boardArray[i][j] === elementId) {
+            if (boardArray[i][j] === elementId) {
                 return position = {
                     row: i,
                     col: j
@@ -1905,7 +821,7 @@ function fieldIdToBoardPosition(fieldId) {
     let row;
     let col;
 
-    switch(id[0]) {
+    switch (id[0]) {
 
         case '1':
             row = 0;
@@ -1933,7 +849,7 @@ function fieldIdToBoardPosition(fieldId) {
             break;
     }
 
-    switch(id[1]) {
+    switch (id[1]) {
 
         case 'A':
             col = 0;
@@ -1971,10 +887,10 @@ function getAllActivePiecesOfPlayer(player, activeBoard) {
 
     let activePiecesOfPlayer = [];
 
-    for(let i = 0; i < activeBoard.length; i++) {
-        for(let j = 0; j < activeBoard[i].length; j++) {
+    for (let i = 0; i < activeBoard.length; i++) {
+        for (let j = 0; j < activeBoard[i].length; j++) {
 
-            if(activeBoard[i][j].startsWith(player)) {
+            if (activeBoard[i][j].startsWith(player)) {
                 activePiecesOfPlayer.push(activeBoard[i][j]);
             }
         }
@@ -1989,15 +905,15 @@ function getAllPossibleMovesOfPlayer(player, activeBoard) {
 
     let possibleMoves = [];
 
-    for(let piece of activePiecesOfPlayer) {
-        
+    for (let piece of activePiecesOfPlayer) {
+
         let posi = givePosition(activeBoard, piece);
 
         let type = getPieceType(piece);
 
         let moves = getLegalMoves(posi, type, activeBoard);
 
-        for(let move of moves) {
+        for (let move of moves) {
             possibleMoves.push(move);
         }
     }
@@ -2006,13 +922,13 @@ function getAllPossibleMovesOfPlayer(player, activeBoard) {
 
 function getKingPositionOfPlayer(player, activeBoard) {
 
-    for(let i = 0; i < activeBoard.length; i++) {
+    for (let i = 0; i < activeBoard.length; i++) {
         for (let j = 0; j < activeBoard[i].length; j++) {
-            if(activeBoard[i][j] == player + "k") {
-                	return {
-                        row: i,
-                        col: j
-                    }
+            if (activeBoard[i][j] == player + "k") {
+                return {
+                    row: i,
+                    col: j
+                }
             }
         }
     }
@@ -2022,7 +938,7 @@ function checkIfPlayerIsInChess(player, activeBoard) {
 
     let opponent;
 
-    if(player === "w") {
+    if (player === "w") {
         opponent = "b";
     } else {
         opponent = "w";
@@ -2036,9 +952,9 @@ function checkIfPlayerIsInChess(player, activeBoard) {
 
     chessCheck = true;
 
-    for(let move of possibleMoves) {
+    for (let move of possibleMoves) {
 
-        if(move.row === kingsPosition.row && move.col === kingsPosition.col) {
+        if (move.row === kingsPosition.row && move.col === kingsPosition.col) {
             return true;
         }
     }
