@@ -11,6 +11,11 @@ function createBoard() {
     board = [];
     currentPlayer = 'X';
     currentPlayerElement.textContent = currentPlayer;
+    
+    // Ẩn kết quả trò chơi khi tạo bảng mới
+    const gameResult = document.getElementById('gameResult');
+    gameResult.style.display = 'none';
+    
     for (let i = 0; i < boardSize; i++) {
         const row = [];
         const rowDiv = document.createElement('div');
@@ -144,7 +149,7 @@ function minimax(newBoard, player, depth = 0, alpha = -Infinity, beta = Infinity
     if (checkWin('O')) return { score: 10 - depth };
     if (checkWin('X')) return { score: depth - 10 };
     if (isBoardFull()) return { score: 0 };
-    if (depth > 5) return { score: evaluate() }; // Giới hạn độ sâu
+    if (depth > 5) return { score: evaluatePosition() }; // Thay đổi này
 
     let bestMove = player === 'O' ? { score: -Infinity } : { score: Infinity };
 
