@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cờ Caro</title>
+    <link rel="stylesheet" href="/TicTacToe/tictactoe.css">
+</head>
+
+<body>
+    <h1>Cờ Caro</h1>
+    <div>
+        Người chơi: <span id="currentPlayer">X</span>
+        <button id="resetButton">🕑 Reset</button>
+        <select id="boardSizeSelector">
+            <option value="3">3x3</option>
+            <option value="10">10x10</option>
+            <option value="16" selected>16x16</option>
+        </select>
+    </div>
+    <h2 id="gameResult" style="display: none;"></h2>
+    <div id="gameBoard" class="game-board"></div>
+
+    <script src="/TicTacToe/tictactoe.js"></script>
+</body>
+
+</html>
