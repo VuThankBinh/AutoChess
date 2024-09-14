@@ -248,3 +248,25 @@ img {
         font-size: 60px;
     }
 }
+
+.checked {
+    position: relative;
+}
+
+.checked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+.checked-black::before {
+    background-color: rgba(255, 0, 0, 0.5); /* Màu đỏ cho vua đen */
+}
+
+.checked-white::before {
+    background-color: rgba(255, 0, 0, 0.5); /* Màu đỏ cho vua trắng */
+}

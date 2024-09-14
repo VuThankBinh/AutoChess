@@ -27,6 +27,9 @@ let chessCheck = true;
 
 let markedMoves = [];
 
+// Thêm biến toàn cục để theo dõi vị trí của vua đang bị chiếu
+let checkedKingPosition = null;
+
 function setupGame() {
 
     board = [["wrA", "wnB", "wbC", "wq", "wk", "wbF", "wnG", "wrH"],
@@ -45,42 +48,33 @@ function reset() {
     location.reload();
 }
 
-let playMode = "c";
-let humansColor = "w";
+let playMode = "h"; // "h" cho human vs human, "c" cho human vs computer
 
 function setHumanMode() {
-
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
 
     if (playMode != "h") {
         playMode = "h";
-
         humanButton.style.backgroundColor = "#e68540";
         comButton.style.backgroundColor = "#4D7EA8";
+        console.log("Chế độ chơi: Người đấu Người");
     } else {
-        alert("You already play Human vs Human");
+        console.log("Bạn đã ở chế độ Người đấu Người");
     }
 }
 
 function setComputerMode() {
-
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
 
     if (playMode != "c") {
         playMode = "c";
-
-        if (whitesTurn) {
-            humansColor = "w";
-        } else {
-            humansColor = "b";
-        }
-
         humanButton.style.backgroundColor = "#4D7EA8";
         comButton.style.backgroundColor = "#e68540";
+        console.log("Chế độ chơi: Người đấu Máy");
     } else {
-        alert("You already play Human vs Computer");
+        console.log("Bạn đã ở chế độ Người đấu Máy");
     }
 }
 
@@ -295,19 +289,15 @@ function movePiece(newField) {
         unmarkPiece();
         changeTurn();
 
-        /*--------check if in vs computer mode and next move has to be done automatically--------*/
-        // check if there are move lefts
-        if (playMode === "c") {
-
-            if (whitesTurn && humansColor === "b") {
-                makeComputerMove("w");
-            };
-
-            if (!whitesTurn && humansColor === "w") {
-                makeComputerMove("b");
-            }
-
-        }
+        // Loại bỏ phần code liên quan đến nước đi của máy tính
+        // if (playMode === "c") {
+        //     if (whitesTurn && humansColor === "b") {
+        //         makeComputerMove("w");
+        //     };
+        //     if (!whitesTurn && humansColor === "w") {
+        //         makeComputerMove("b");
+        //     }
+        // }
 
     } else {
 
@@ -316,43 +306,7 @@ function movePiece(newField) {
     }
 }
 
-function makeComputerMove(computerColor) {
-
-    let randomMarker;
-
-    let pieces = getAllActivePiecesOfPlayer(computerColor, board);
-
-    /*------random search for a legit move----------*/
-    while (randomMarker == null && getAllPossibleMovesOfPlayer(computerColor, board) != 0) {
-
-        let randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
-
-        // delete randompiece from array to avoid randomly selecting it in next iteration
-        const index = pieces.indexOf(randomPiece);
-        if (index > -1) {
-            pieces.splice(index, 1);
-        }
-
-        document.getElementById(randomPiece).click();
-
-        let allMarkers = document.getElementsByClassName("marker");
-
-        // unmark piece if no possible moves
-        if (allMarkers.length === 0) {
-            deleteMarker();
-            unmarkPiece();
-        } else {
-            randomMarker = allMarkers[Math.floor(Math.random() * allMarkers.length)];
-        }
-    }
-
-    /*-----wait a few seconds so user can see move------ */
-    if (getAllPossibleMovesOfPlayer(computerColor, board) != 0) {
-        setTimeout(function () {
-            randomMarker.click();
-        }, 1500);
-    }
-}
+// Loại bỏ hoặc comment out hàm makeComputerMove nếu không cần thiết
 
 function changeTurn() {
 
@@ -391,6 +345,39 @@ function changeTurn() {
     } else {
         moveCounter.innerHTML = "Possible Moves: " + moveAmount;
     }
+
+    let currentPlayer = whitesTurn ? "w" : "b";
+    let isInCheck = checkIfPlayerIsInChess(currentPlayer, board);
+
+    if (isInCheck) {
+        let kingPosition = getKingPositionOfPlayer(currentPlayer, board);
+        checkedKingPosition = kingPosition;
+        highlightCheckedKing(kingPosition, currentPlayer);
+    } else {
+        checkedKingPosition = null;
+        removeCheckedKingHighlight();
+    }
+}
+
+function highlightCheckedKing(position, playerColor) {
+    let fieldId = getFieldFromPosition(position);
+    let field = document.getElementById(fieldId);
+    field.classList.add("checked");
+    field.classList.add(playerColor === "b" ? "checked-black" : "checked-white");
+    console.log("Highlighting king at", fieldId, "for player", playerColor);
+}
+
+function removeCheckedKingHighlight() {
+    let checkedFields = document.getElementsByClassName("checked");
+    while (checkedFields.length > 0) {
+        checkedFields[0].classList.remove("checked", "checked-white", "checked-black");
+    }
+}
+
+function getFieldFromPosition(position) {
+    let row = 8 - position.row; // Chuyển đổi từ 0-7 sang 8-1
+    let col = String.fromCharCode(65 + position.col); // Chuyển đổi từ 0-7 sang A-H
+    return `${row}${col}`;
 }
 
 function showMoves(element) {
@@ -429,6 +416,7 @@ function checkIfPieceIsOnField(position, activeBoard) {
         return false;
     }
 }
+
 function getColorOfPieceAtPosition(position, activeBoard) {
     const piece = activeBoard[position.row][position.col];
 
@@ -440,7 +428,6 @@ function getColorOfPieceAtPosition(position, activeBoard) {
     // Giả sử quân trắng bắt đầu bằng "w" và quân đen bắt đầu bằng "b"
     return piece.charAt(0); // Lấy ký tự đầu tiên để xác định màu của quân cờ
 }
-
 
 function makeMoveAndCheckIfChess(piecePosition, newPosition, playerColor) {
 
@@ -492,7 +479,7 @@ function makeMoveAndReturnNewBoard(piecePosition, newPosition) {
 
     return tempBoard;
 }
-// Hàm để lấy các nước đi hợp lệ cho một quân cờ
+
 function getLegalMoves(piecePosition, pieceType, activeBoard) {
     const playerColor = getColorOfPieceAtPosition(piecePosition, activeBoard);
     const legalMoves = [];
@@ -552,7 +539,6 @@ function getLegalMoves(piecePosition, pieceType, activeBoard) {
 
             default:
                 return false; // Nếu không xác định được loại quân cờ, coi là sai
-            // Nếu không xác định được loại quân cờ, coi là sai
         }
     };
 
@@ -679,9 +665,6 @@ function getLegalMoves(piecePosition, pieceType, activeBoard) {
     return legalMoves;
 }
 
-
-
-
 function deleteMarker() {
 
     let marker = document.getElementsByClassName("marker");
@@ -760,6 +743,12 @@ function unmarkPiece() {
     fieldOnFocus.style.backgroundColor = "";
 
     fieldOnFocus = null;
+}
+
+// Đảm bảo rằng hàm setupGame được gọi khi trang web được tải
+window.onload = function() {
+    setupGame();
+    setHumanMode(); // Đặt chế độ mặc định là người đấu người
 }
 
 function markLegalMoves(positions) {
