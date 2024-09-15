@@ -30,6 +30,10 @@ let markedMoves = [];
 // Thêm biến toàn cục để theo dõi vị trí của vua đang bị chiếu
 let checkedKingPosition = null;
 
+// Thêm biến mới cho AI
+let aiDepth = 4; // Độ sâu tìm kiếm cho AI
+let aiColor = 'b'; // Màu của AI (đen)
+
 function setupGame() {
 
     board = [["wrA", "wnB", "wbC", "wq", "wk", "wbF", "wnG", "wrH"],
@@ -97,7 +101,7 @@ function reset() {
 
     // Nếu đang ở chế độ chơi với máy và máy đi trước (quân đen), thực hiện nước đi đầu tiên của máy
     if (playMode === "c" && !whitesTurn) {
-        makeComputerMove('b');
+        makeAIMove();
     }
 }
 
@@ -145,9 +149,9 @@ function setComputerMode() {
         gameModeDisplay.innerHTML = "Chế độ: Người đấu Máy (Expert)";
         console.log("Chế độ chơi: Người đấu Máy (Expert)");
         
-        // Khởi tạo nước đi đầu tiên của máy nếu máy chơi quân trắng
+        // Khởi tạo nước đi đầu tiên của máy nếu máy chơi quân đen
         if (!whitesTurn) {
-            makeComputerMove('b');
+            setTimeout(makeAIMove, 500);
         }
     } else {
         
@@ -367,15 +371,10 @@ function movePiece(newField) {
         unmarkPiece();
         changeTurn();
 
-        // Loại bỏ phần code liên quan đến nước đi của máy tính
-        // if (playMode === "c") {
-        //     if (whitesTurn && humansColor === "b") {
-        //         makeComputerMove("w");
-        //     };
-        //     if (!whitesTurn && humansColor === "w") {
-        //         makeComputerMove("b");
-        //     }
-        // }
+        // Nếu đang ở chế độ chơi với máy và máy đi trước (quân đen), thực hiện nước đi đầu tiên của máy
+        if (playMode === "c" && !whitesTurn) {
+            setTimeout(makeAIMove, 500);
+        }
 
     } else {
 
@@ -384,8 +383,140 @@ function movePiece(newField) {
     }
 }
 
-// Loại bỏ hoặc comment out hàm makeComputerMove nếu không cần thiết
+// Hàm đánh giá bàn cờ
+function evaluateBoard(board) {
+    const pieceValues = {
+        'p': 10,
+        'n': 30,
+        'b': 30,
+        'r': 50,
+        'q': 90,
+        'k': 900
+    };
 
+    let score = 0;
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            if (board[row][col]) {
+                const piece = board[row][col];
+                const pieceType = piece.charAt(1);
+                const pieceColor = piece.charAt(0);
+                const value = pieceValues[pieceType.toLowerCase()];
+                if (pieceColor === 'w') {
+                    score -= value;
+                } else {
+                    score += value;
+                }
+            }
+        }
+    }
+    return score;
+}
+
+// Hàm minimax với cắt tỉa alpha-beta
+function minimax(board, depth, alpha, beta, maximizingPlayer) {
+    if (depth === 0) {
+        return evaluateBoard(board);
+    }
+
+    if (maximizingPlayer) {
+        let maxEval = -Infinity;
+        const moves = getAllPossibleMovesOfPlayer('b', board);
+        for (let move of moves) {
+            const newBoard = makeMoveAndReturnNewBoard(move.from, move.to, board);
+            if (newBoard === null) continue; // Bỏ qua nước đi không hợp lệ
+            
+            const eval = minimax(newBoard, depth - 1, alpha, beta, false);
+            maxEval = Math.max(maxEval, eval);
+            alpha = Math.max(alpha, eval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return maxEval;
+    } else {
+        let minEval = Infinity;
+        const moves = getAllPossibleMovesOfPlayer('w', board);
+        for (let move of moves) {
+            const newBoard = makeMoveAndReturnNewBoard(move.from, move.to, board);
+            if (newBoard === null) continue; // Bỏ qua nước đi không hợp lệ
+            
+            const eval = minimax(newBoard, depth - 1, alpha, beta, true);
+            minEval = Math.min(minEval, eval);
+            beta = Math.min(beta, eval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return minEval;
+    }
+}
+
+// Hàm tìm nước đi tốt nhất cho AI
+function findBestMove(board) {
+    let bestMove = null;
+    let bestValue = -Infinity;
+    const moves = getAllPossibleMovesOfPlayer('b', board);
+    
+    if (moves.length === 0) {
+        console.error("Không có nước đi hợp lệ cho AI");
+        return null;
+    }
+    
+    for (let move of moves) {
+        if (!move.from || !move.to) {
+            console.error("Nước đi không hợp lệ:", move);
+            continue;
+        }
+        const newBoard = makeMoveAndReturnNewBoard(move.from, move.to, board);
+        if (newBoard === null) continue; // Bỏ qua nước đi không hợp lệ
+        
+        const moveValue = minimax(newBoard, aiDepth - 1, -Infinity, Infinity, false);
+        if (moveValue > bestValue) {
+            bestValue = moveValue;
+            bestMove = move;
+        }
+    }
+    
+    return bestMove;
+}
+
+// Hàm thực hiện nước đi của AI
+function makeAIMove() {
+    const bestMove = findBestMove(board);
+    if (bestMove) {
+        const piece = document.getElementById(board[bestMove.from.row][bestMove.from.col]);
+        if (piece) {
+            showMoves(piece);
+            const newField = document.getElementById(getFieldFromPosition(bestMove.to));
+            if (newField) {
+                movePiece(newField);
+            } else {
+                console.error("Không tìm thấy ô cờ mới:", bestMove.to);
+            }
+        } else {
+            console.error("Không tìm thấy quân cờ:", bestMove.from);
+        }
+    } else {
+        console.error("AI không thể tìm thấy nước đi hợp lệ");
+        // Xử lý trường hợp AI không thể di chuyển (ví dụ: chiếu bí)
+        handleGameOver();
+    }
+}
+
+// Thêm hàm mới để xử lý kết thúc trò chơi
+function handleGameOver() {
+    let gameOverMessage = "";
+    if (checkIfPlayerIsInChess('b', board)) {
+        gameOverMessage = "Chiếu bí! Người chơi thắng!";
+    } else {
+        gameOverMessage = "Hòa cờ!";
+    }
+    alert(gameOverMessage);
+    // Có thể thêm logic để reset trò chơi hoặc thực hiện các hành động khác khi trò chơi kết thúc
+}
+
+// Cập nhật hàm changeTurn để gọi AI khi đến lượt máy
 function changeTurn() {
 
     let em = document.getElementById("turnIndicator");
@@ -434,6 +565,11 @@ function changeTurn() {
     } else {
         checkedKingPosition = null;
         removeCheckedKingHighlight();
+    }
+
+    // Nếu đang ở chế độ chơi với máy và máy đi trước (quân đen), thực hiện nước đi đầu tiên của máy
+    if (playMode === "c" && !whitesTurn) {
+        setTimeout(makeAIMove, 500); // Thêm độ trễ nhỏ để tạo cảm giác tự nhiên
     }
 }
 
@@ -533,29 +669,26 @@ function makeMoveAndCheckIfChess(piecePosition, newPosition, playerColor) {
     return checkIfPlayerIsInChess(playerColor, tempBoard);
 }
 
-function makeMoveAndReturnNewBoard(piecePosition, newPosition) {
-
-    let tempBoard = [["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""]
-    ];
-
-    for (let i = 0; i < board.length; i++) {
-        for (let j = 0; j < board[i].length; j++) {
-            tempBoard[i][j] = board[i][j];
-        }
+function makeMoveAndReturnNewBoard(from, to, currentBoard) {
+    // Kiểm tra xem from và to có hợp lệ không
+    if (!from || !to || typeof from.row === 'undefined' || typeof from.col === 'undefined' ||
+        typeof to.row === 'undefined' || typeof to.col === 'undefined') {
+        console.error("Nước đi không hợp lệ:", from, to);
+        return null; // Trả về null nếu nước đi không hợp lệ
     }
 
-    // make move on tempBoard
-    tempBoard[newPosition.row][newPosition.col] = tempBoard[piecePosition.row][piecePosition.col];
-    tempBoard[piecePosition.row][piecePosition.col] = "";
+    // Tạo một bản sao của bàn cờ hiện tại
+    let newBoard = currentBoard.map(row => [...row]);
 
-    return tempBoard;
+    // Thực hiện nước đi
+    const piece = newBoard[from.row][from.col];
+    newBoard[to.row][to.col] = piece;
+    newBoard[from.row][from.col] = "";
+
+    // Xử lý các trường hợp đặc biệt như phong hậu, bắt tốt qua đường, nhập thành
+    // (Bạn cần thêm logic cho các trường hợp này)
+
+    return newBoard;
 }
 
 function getLegalMoves(piecePosition, pieceType, activeBoard) {
@@ -826,8 +959,10 @@ function unmarkPiece() {
 // Đảm bảo rằng hàm setupGame được gọi khi trang web được tải
 window.onload = function() {
     setupGame();
-    setComputerMode(); 
+    // setComputerMode();
+    setHumanMode();
 }
+
 
 function markLegalMoves(positions) {
 
