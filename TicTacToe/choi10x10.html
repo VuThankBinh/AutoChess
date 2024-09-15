@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cờ Caro 10x10</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #controls {
+            margin-bottom: 20px;
+        }
+
+        #gameBoard {
+            display: grid;
+            grid-template-columns: repeat(10, 50px);
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Cờ Caro 10x10</h1>
+    <div id="controls">
+        Người chơi: <b><span id="currentPlayer">X</span></b>
+        <button id="resetButton">⟳ Reset</button>
+    </div>
+    <div id="gameBoard"></div>
+    <div id="status"></div>
+    <script>
+        const gameBoard = document.getElementById('gameBoard');
+        const status = document.getElementById('status');
+        const resetButton = document.getElementById('resetButton');
+        const currentPlayerDisplay = document.getElementById('currentPlayer');
+
+        let board = [];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let isComputerThinking = false;
+        const boardSize = 10;
+        const winLength = 5;
+        const MAX_DEPTH = 4; // Độ sâu tối đa cho Minimax
+
+        function createBoard() {
+            gameBoard.innerHTML = '';
+            board = Array(boardSize).fill().map(() => Array(boardSize).fill(''));
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.addEventListener('click', () => handleCellClick(i, j));
+                    gameBoard.appendChild(cell);
+                }
+            }
+            gameBoard.style.gridTemplateColumns = `repeat(${boardSize}, 50px)`;
+        }
+
+        function handleCellClick(row, col) {
+            if (isComputerThinking || !gameActive || board[row][col] !== '') return;
+
+            makeMove(row, col);
+            
+            if (gameActive && currentPlayer === 'O') {
+                isComputerThinking = true;
+                setTimeout(computerMove, 100);
+            }
+        }
+
+        function makeMove(row, col) {
+            board[row][col] = currentPlayer;
+            updateCell(row, col);
+            
+            if (checkWin(currentPlayer, row, col)) {
+                endGame(`${currentPlayer} thắng!`);
+            } else if (checkDraw()) {
+                endGame('Hòa!');
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                currentPlayerDisplay.textContent = currentPlayer;
+            }
+        }
+
+        function computerMove() {
+            console.log('Computer is thinking...');
+            const startTime = Date.now();
+            
+            const bestMove = findBestMove();
+            
+            const endTime = Date.now();
+            console.log(`Computer took ${endTime - startTime}ms to decide`);
+            
+            if (bestMove && gameActive) {
+                setTimeout(() => {
+                    makeMove(bestMove.row, bestMove.col);
+                    isComputerThinking = false;
+                }, 500);
+            } else {
+                isComputerThinking = false;
+            }
+        }
+
+        function findBestMove() {
+            let bestScore = -Infinity;
+            let bestMove;
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    if (board[row][col] === '') {
+                        board[row][col] = 'O';
+                        let score = minimax(board, 0, false);
+                        board[row][col] = '';
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = { row, col };
+                        }
+                    }
+                }
+            }
+            return bestMove;
+        }
+
+        function minimax(board, depth, isMaximizing) {
+            if (checkWin('O')) return 100 - depth;
+            if (checkWin('X')) return depth - 100;
+            if (checkDraw()) return 0;
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let row = 0; row < boardSize; row++) {
+                    for (let col = 0; col < boardSize; col++) {
+                        if (board[row][col] === '') {
+                            board[row][col] = 'O';
+                            let score = minimax(board, depth + 1, false);
+                            board[row][col] = '';
+                            bestScore = Math.max(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let row = 0; row < boardSize; row++) {
+                    for (let col = 0; col < boardSize; col++) {
+                        if (board[row][col] === '') {
+                            board[row][col] = 'X';
+                            let score = minimax(board, depth + 1, true);
+                            board[row][col] = '';
+                            bestScore = Math.min(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            }
+        }
+
+        function updateCell(row, col) {
+            const cellIndex = row * boardSize + col;
+            const cell = document.querySelectorAll('.cell')[cellIndex];
+            cell.textContent = board[row][col];
+        }
+
+        function checkWin(player) {
+            // Implement win checking logic here
+            // Return true if the player has won, false otherwise
+        }
+
+        function checkDraw() {
+            return board.every(row => row.every(cell => cell !== ''));
+        }
+
+        function endGame(message) {
+            gameActive = false;
+            status.textContent = message;
+        }
+
+        function resetGame() {
+            board = Array(boardSize).fill().map(() => Array(boardSize).fill(''));
+            currentPlayer = 'X';
+            gameActive = true;
+            isComputerThinking = false;
+            status.textContent = '';
+            currentPlayerDisplay.textContent = currentPlayer;
+            createBoard();
+        }
+
+        // Ensure you have a reset button in your HTML
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createBoard();
+        });
+    </script>
+</body>
+
+</html>

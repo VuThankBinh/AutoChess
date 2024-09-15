@@ -44,37 +44,115 @@ function setupGame() {
 }
 
 function reset() {
+    // Thiết lập lại bàn cờ
+    setupGame();
 
-    location.reload();
+    // Xóa tất cả các quân cờ hiện tại trên bàn cờ
+    const pieces = document.querySelectorAll('.piece');
+    pieces.forEach(piece => piece.remove());
+
+    // Đặt lại các biến trạng thái
+    whitesTurn = true;
+    onPieceFocus = false;
+    fieldOnFocus = null;
+    pieceOnFocus = null;
+    enPassantPawn = null;
+    whiteCanCastle = true;
+    blackCanCastle = true;
+    wKRookMoved = false;
+    bKRookMoved = false;
+    wQRookMoved = false;
+    bQRookMoved = false;
+    checkedKingPosition = null;
+
+    // Đặt lại các bộ đếm
+    whitePawnSwapCounter = "I";
+    blackPawnSwapCounter = "I";
+
+    // Cập nhật hiển thị lượt đi
+    document.getElementById("turnIndicator").textContent = "Lượt cờ: trắng";
+    document.getElementById("moveCounter").textContent = "Số nước có thể đi: 20";
+
+    // Xóa tất cả các đánh dấu trên bàn cờ
+    deleteMarker();
+    removeCheckedKingHighlight();
+
+    // Đặt lại các quân cờ trên bàn cờ
+    const gameboard = document.getElementById('gameboard');
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = board[row][col];
+            if (piece) {
+                const img = document.createElement('img');
+                img.id = piece;
+                img.classList.add('piece');
+                img.classList.add(`row${row + 1}`);
+                img.classList.add(`col${String.fromCharCode(65 + col)}`);
+                img.src = `/image/${piece.charAt(0)}_${getPieceNameFromType(piece.charAt(1))}.png`;
+                img.setAttribute('onclick', 'showMoves(this)');
+                gameboard.appendChild(img);
+            }
+        }
+    }
+
+    // Nếu đang ở chế độ chơi với máy và máy đi trước (quân đen), thực hiện nước đi đầu tiên của máy
+    if (playMode === "c" && !whitesTurn) {
+        makeComputerMove('b');
+    }
 }
 
-let playMode = "h"; // "h" cho human vs human, "c" cho human vs computer
+// Hàm hỗ trợ để lấy tên đầy đủ của quân cờ từ ký tự
+function getPieceNameFromType(type) {
+    switch (type) {
+        case 'p': return 'pawn';
+        case 'r': return 'rook';
+        case 'n': return 'knight';
+        case 'b': return 'bishop';
+        case 'q': return 'queen';
+        case 'k': return 'king';
+        default: return '';
+    }
+}
+
+let playMode = "c"; // "h" cho human vs human, "c" cho human vs computer
 
 function setHumanMode() {
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
+    let gameModeDisplay = document.getElementById("gameMode");
 
     if (playMode != "h") {
         playMode = "h";
         humanButton.style.backgroundColor = "#e68540";
         comButton.style.backgroundColor = "#4D7EA8";
+        gameModeDisplay.textContent = "Chế độ: Người đấu Người";
         console.log("Chế độ chơi: Người đấu Người");
     } else {
         console.log("Bạn đã ở chế độ Người đấu Người");
+        gameModeDisplay.textContent = "Chế độ: Người đấu Người";
     }
 }
 
 function setComputerMode() {
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
+    let gameModeDisplay = document.getElementById("gameMode");
 
     if (playMode != "c") {
         playMode = "c";
         humanButton.style.backgroundColor = "#4D7EA8";
         comButton.style.backgroundColor = "#e68540";
-        console.log("Chế độ chơi: Người đấu Máy");
+        gameModeDisplay.innerHTML = "Chế độ: Người đấu Máy (Expert)";
+        console.log("Chế độ chơi: Người đấu Máy (Expert)");
+        
+        // Khởi tạo nước đi đầu tiên của máy nếu máy chơi quân trắng
+        if (!whitesTurn) {
+            makeComputerMove('b');
+        }
     } else {
-        console.log("Bạn đã ở chế độ Người đấu Máy");
+        
+        gameModeDisplay.innerHTML = "Chế độ: Người đấu Máy (Expert)";
+        console.log("Bạn đã ở chế độ Người đấu Máy (Expert)");
     }
 }
 
@@ -320,13 +398,13 @@ function changeTurn() {
 
         // change to blacks turn
         whitesTurn = false;
-        em.innerHTML = "Blacks Turn";
+        em.innerHTML = "Lượt của máy";
 
         moveAmount = getAllPossibleMovesOfPlayer("b", board).length;
 
     } else {
         whitesTurn = true;
-        em.innerHTML = "Whites Turn"
+        em.innerHTML = "Đến lượt bạn"
 
         moveAmount = getAllPossibleMovesOfPlayer("w", board).length;
     }
@@ -343,7 +421,7 @@ function changeTurn() {
         }
 
     } else {
-        moveCounter.innerHTML = "Possible Moves: " + moveAmount;
+        moveCounter.innerHTML = "Các nước có thể đi: " + moveAmount;
     }
 
     let currentPlayer = whitesTurn ? "w" : "b";
@@ -423,7 +501,7 @@ function getColorOfPieceAtPosition(position, activeBoard) {
     // Kiểm tra nếu vị trí không có quân cờ (undefined hoặc null)
     if (!piece) {
         return null; // Trả về null nếu không có quân cờ nào ở vị trí này
-    }
+    } 
 
     // Giả sử quân trắng bắt đầu bằng "w" và quân đen bắt đầu bằng "b"
     return piece.charAt(0); // Lấy ký tự đầu tiên để xác định màu của quân cờ
@@ -748,7 +826,7 @@ function unmarkPiece() {
 // Đảm bảo rằng hàm setupGame được gọi khi trang web được tải
 window.onload = function() {
     setupGame();
-    setHumanMode(); // Đặt chế độ mặc định là người đấu người
+    setComputerMode(); 
 }
 
 function markLegalMoves(positions) {
@@ -939,6 +1017,12 @@ function checkIfPlayerIsInChess(player, activeBoard) {
 
     let kingsPosition = getKingPositionOfPlayer(player, activeBoard);
 
+    // Kiểm tra xem vị trí của vua có tồn tại không
+    if (!kingsPosition) {
+        console.error("Không tìm thấy vị trí của vua cho người chơi", player);
+        return false; // hoặc xử lý lỗi theo cách khác tùy vào logic của bạn
+    }
+    
     chessCheck = true;
 
     for (let move of possibleMoves) {
