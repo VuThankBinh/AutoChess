@@ -30,6 +30,8 @@ let markedMoves = [];
 // Thêm biến toàn cục để theo dõi vị trí của vua đang bị chiếu
 let checkedKingPosition = null;
 
+let playMode = "h"; // "h" cho human vs human, "c" cho human vs computer
+
 function setupGame() {
 
     board = [["wrA", "wnB", "wbC", "wq", "wk", "wbF", "wnG", "wrH"],
@@ -43,35 +45,57 @@ function setupGame() {
     ];
 }
 
-function reset() {
 
-    location.reload();
+
+// Hàm hỗ trợ để lấy tên đầy đủ của quân cờ từ ký tự
+function getPieceNameFromType(type) {
+    switch (type) {
+        case 'p': return 'pawn';
+        case 'r': return 'rook';
+        case 'n': return 'knight';
+        case 'b': return 'bishop';
+        case 'q': return 'queen';
+        case 'k': return 'king';
+        default: return '';
+    }
 }
-
-let playMode = "h"; // "h" cho human vs human, "c" cho human vs computer
 
 function setHumanMode() {
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
+    let gameModeDisplay = document.getElementById("gameMode");
+    let humanControls = document.getElementById("human");
+    let computerControls = document.getElementById("computer");
 
-    if (playMode != "h") {
-        playMode = "h";
-        humanButton.style.backgroundColor = "#e68540";
-        comButton.style.backgroundColor = "#4D7EA8";
-        console.log("Chế độ chơi: Người đấu Người");
-    } else {
-        console.log("Bạn đã ở chế độ Người đấu Người");
-    }
+    playMode = "h";
+    humanButton.style.backgroundColor = "#e68540"; // Màu cam
+    comButton.style.backgroundColor = "#4D7EA8"; // Màu xanh
+    gameModeDisplay.textContent = "Chế độ: Người đấu Người";
+    
+    humanControls.style.display = "block";
+    computerControls.style.display = "none";
+    
+    console.log("Chế độ chơi: Người đấu Người");
 }
 
 function setComputerMode() {
     let humanButton = document.getElementById("humanMode");
     let comButton = document.getElementById("computerMode");
+    let gameModeDisplay = document.getElementById("gameMode");
+    let humanControls = document.getElementById("human");
+    let computerControls = document.getElementById("computer");
+    let moveCounter = document.getElementById("moveCounter");
 
     if (playMode != "c") {
         playMode = "c";
         humanButton.style.backgroundColor = "#4D7EA8";
         comButton.style.backgroundColor = "#e68540";
+        gameModeDisplay.innerHTML = "Chế độ: Người đấu Máy";
+        moveCounter.style.display = "none";
+        
+        humanControls.style.display = "none";
+        computerControls.style.display = "block";
+        
         console.log("Chế độ chơi: Người đấu Máy");
     } else {
         console.log("Bạn đã ở chế độ Người đấu Máy");
@@ -289,24 +313,12 @@ function movePiece(newField) {
         unmarkPiece();
         changeTurn();
 
-        // Loại bỏ phần code liên quan đến nước đi của máy tính
-        // if (playMode === "c") {
-        //     if (whitesTurn && humansColor === "b") {
-        //         makeComputerMove("w");
-        //     };
-        //     if (!whitesTurn && humansColor === "w") {
-        //         makeComputerMove("b");
-        //     }
-        // }
-
     } else {
 
         // clicked on field is not a legit move
         console.log("nope");
     }
 }
-
-// Loại bỏ hoặc comment out hàm makeComputerMove nếu không cần thiết
 
 function changeTurn() {
 
@@ -320,13 +332,13 @@ function changeTurn() {
 
         // change to blacks turn
         whitesTurn = false;
-        em.innerHTML = "Blacks Turn";
+        em.innerHTML = "Đến lượt đen";
 
         moveAmount = getAllPossibleMovesOfPlayer("b", board).length;
 
     } else {
         whitesTurn = true;
-        em.innerHTML = "Whites Turn"
+        em.innerHTML = "Đến lượt trắng"
 
         moveAmount = getAllPossibleMovesOfPlayer("w", board).length;
     }
@@ -334,16 +346,16 @@ function changeTurn() {
     if (moveAmount === 0) {
 
         if (whitesTurn && checkIfPlayerIsInChess("w", board)) {
-            moveCounter.innerHTML = "Check Mate, Black Wins!";
+            moveCounter.innerHTML = "Chiếu bí, Đen thắng!";
 
         } else if (!whitesTurn && checkIfPlayerIsInChess("b", board)) {
-            moveCounter.innerHTML = "Check Mate, White Wins!";
+            moveCounter.innerHTML = "Chiếu bí, Trắng thắng!";
         } else {
-            moveCounter.innerHTML = "Stale Mate...Draw!";
+            moveCounter.innerHTML = "Hòa cờ!";
         }
 
     } else {
-        moveCounter.innerHTML = "Possible Moves: " + moveAmount;
+        moveCounter.innerHTML = "Các nước có thể đi: " + moveAmount;
     }
 
     let currentPlayer = whitesTurn ? "w" : "b";
@@ -455,29 +467,26 @@ function makeMoveAndCheckIfChess(piecePosition, newPosition, playerColor) {
     return checkIfPlayerIsInChess(playerColor, tempBoard);
 }
 
-function makeMoveAndReturnNewBoard(piecePosition, newPosition) {
-
-    let tempBoard = [["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""]
-    ];
-
-    for (let i = 0; i < board.length; i++) {
-        for (let j = 0; j < board[i].length; j++) {
-            tempBoard[i][j] = board[i][j];
-        }
+function makeMoveAndReturnNewBoard(from, to, currentBoard) {
+    // Kiểm tra xem from và to có hợp lệ không
+    if (!from || !to || typeof from.row === 'undefined' || typeof from.col === 'undefined' ||
+        typeof to.row === 'undefined' || typeof to.col === 'undefined') {
+        console.error("Nước đi không hợp lệ:", from, to);
+        return null; // Trả về null nếu nước đi không hợp lệ
     }
 
-    // make move on tempBoard
-    tempBoard[newPosition.row][newPosition.col] = tempBoard[piecePosition.row][piecePosition.col];
-    tempBoard[piecePosition.row][piecePosition.col] = "";
+    // Tạo một bản sao của bàn cờ hiện tại
+    let newBoard = currentBoard.map(row => [...row]);
 
-    return tempBoard;
+    // Thực hiện nước đi
+    const piece = newBoard[from.row][from.col];
+    newBoard[to.row][to.col] = piece;
+    newBoard[from.row][from.col] = "";
+
+    // Xử lý các trường hợp đặc biệt như phong hậu, bắt tốt qua đường, nhập thành
+    // (Bạn cần thêm logic cho các trường hợp này)
+
+    return newBoard;
 }
 
 function getLegalMoves(piecePosition, pieceType, activeBoard) {
@@ -748,8 +757,9 @@ function unmarkPiece() {
 // Đảm bảo rằng hàm setupGame được gọi khi trang web được tải
 window.onload = function() {
     setupGame();
-    setHumanMode(); // Đặt chế độ mặc định là người đấu người
+    setHumanMode(); // Gọi setHumanMode để đặt màu sắc ban đầu cho các nút
 }
+
 
 function markLegalMoves(positions) {
 
@@ -939,6 +949,12 @@ function checkIfPlayerIsInChess(player, activeBoard) {
 
     let kingsPosition = getKingPositionOfPlayer(player, activeBoard);
 
+    // Kiểm tra xem vị trí của vua có tồn tại không
+    if (!kingsPosition) {
+        console.error("Không tìm thấy vị trí của vua cho người chơi", player);
+        return false; // hoặc xử lý lỗi theo cách khác tùy vào logic của bạn
+    }
+    
     chessCheck = true;
 
     for (let move of possibleMoves) {
