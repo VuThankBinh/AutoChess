@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi"> 
 
 <head>
     <meta charset="UTF-8">
@@ -7,25 +7,24 @@
     <title>Cờ Caro 3x3</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
         }
 
-        h1 {
-            margin-bottom: 20px;
+        #gameContainer {
+            text-align: center;
         }
-
-        #controls {
-            margin-bottom: 20px;
-        }
-
         #gameBoard {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             gap: 2px;
             margin-bottom: 20px;
+            position: relative;
+            padding: 2px;
         }
 
         .cell {
@@ -38,159 +37,149 @@
             font-size: 40px;
             cursor: pointer;
         }
+
+        .winning-line {
+            position: absolute;
+            background-color: green;
+            z-index: 1;
+        }
     </style>
 </head>
 
 <body>
-    <h1>Cờ Caro 3x3</h1>
-    <div id="controls">
-        Người chơi: 
-        <b>
-            <span id="currentPlayer">X</span>
-        </b>
-        <button id="resetButton">⟳ Reset</button>
-        <!-- <select id="boardSize">
-            <option value="3">3x3</option>
-            <option value="10">10x10</option>
-            <option value="16">16x16</option>
-        </select> -->
+    <div id="gameContainer">
+        <h1>Cờ Caro 3x3</h1>
+        <h1 id="gameResult" style="display: none;"></h1>
+        <div id="gameBoard"></div>
+        <p>Lượt của: <span id="currentPlayer">X</span></p>
+        <button id="resetButton">Chơi lại</button>
     </div>
-    <div id="gameBoard"></div>
-    <div id="status"></div>
     <script>
         const gameBoard = document.getElementById('gameBoard');
-        const status = document.getElementById('status');
+        const currentPlayerElement = document.getElementById('currentPlayer');
         const resetButton = document.getElementById('resetButton');
-        const currentPlayerDisplay = document.getElementById('currentPlayer');
-        const boardSizeSelect = document.getElementById('boardSize');
-
-        let board = [];
+        const boardSize = 3;
         let currentPlayer = 'X';
-        let gameActive = true;
-        let boardSize = 3;
+        let board = [];
 
         function createBoard() {
             gameBoard.innerHTML = '';
+            document.getElementById('gameResult').style.display = 'none';
             board = Array(boardSize).fill().map(() => Array(boardSize).fill(''));
+            currentPlayer = 'X';
+            currentPlayerElement.textContent = currentPlayer;
+
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
                     const cell = document.createElement('div');
                     cell.classList.add('cell');
-                    cell.addEventListener('click', () => handleCellClick(i, j));
+                    cell.addEventListener('click', () => playerMove(i, j));
                     gameBoard.appendChild(cell);
                 }
             }
-            gameBoard.style.gridTemplateColumns = `repeat(${boardSize}, 100px)`;
         }
 
-        function handleCellClick(row, col) {
-            if (board[row][col] === '' && gameActive) {
-                board[row][col] = currentPlayer;
-                updateCell(row, col);
-                if (checkWin(row, col)) {
-                    endGame(`${currentPlayer} thắng!`);
-                } else if (checkDraw()) {
-                    endGame('Hòa!');
-                } else {
-                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                    currentPlayerDisplay.textContent = currentPlayer;
-                    if (currentPlayer === 'O') {
-                        setTimeout(computerMove, 500);
-                    }
+        function playerMove(row, col) {
+            if (board[row][col] === '' && currentPlayer === 'X') {
+                makeMove(row, col);
+                if (!checkGameEnd()) {
+                    currentPlayer = 'O';
+                    currentPlayerElement.textContent = currentPlayer;
+                    setTimeout(computerMove, 500);
                 }
             }
-        }
-
-        function updateCell(row, col) {
-            const index = row * boardSize + col;
-            gameBoard.children[index].textContent = currentPlayer;
-        }
-
-        function checkWin(row, col) {
-            // Kiểm tra hàng, cột và đường chéo
-            return (
-                checkLine(row, 0, 0, 1) ||
-                checkLine(0, col, 1, 0) ||
-                checkLine(0, 0, 1, 1) ||
-                checkLine(0, boardSize - 1, 1, -1)
-            );
-        }
-
-        function checkLine(row, col, rowDelta, colDelta) {
-            const player = board[row][col];
-            let count = 0;
-            for (let i = 0; i < boardSize; i++) {
-                if (board[row][col] === player) {
-                    count++;
-                    if (count === (boardSize === 3 ? 3 : 5)) return true;
-                } else {
-                    count = 0;
-                }
-                row += rowDelta;
-                col += colDelta;
-                if (row >= boardSize || col >= boardSize || row < 0 || col < 0) break;
-            }
-            return false;
-        }
-
-        function checkDraw() {
-            return board.every(row => row.every(cell => cell !== ''));
-        }
-
-        function endGame(message) {
-            gameActive = false;
-            status.textContent = message;
         }
 
         function computerMove() {
-            if (!gameActive) return;
-            let bestScore = -Infinity;
-            let move;
+            const move = minimaxMove(board, 'O');
+            if (move) {
+                makeMove(move[0], move[1]);
+                if (!checkGameEnd()) {
+                    currentPlayer = 'X';
+                    currentPlayerElement.textContent = currentPlayer;
+                }
+            }
+        }
+
+        function makeMove(row, col) {
+            board[row][col] = currentPlayer;
+            const cell = gameBoard.children[row * boardSize + col];
+            cell.textContent = currentPlayer;
+            cell.style.color = currentPlayer === 'X' ? 'red' : 'blue';
+        }
+
+        function minimaxMove(board, player) {
+            // Khởi tạo điểm tốt nhất: -Infinity cho O (tối đa hóa), Infinity cho X (tối thiểu hóa)
+            let bestScore = player === 'O' ? -Infinity : Infinity;
+            let bestMove;
+
+            // Duyệt qua tất cả các ô trên bàn cờ
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
+                    // Nếu ô trống, thử đặt quân cờ vào đó
                     if (board[i][j] === '') {
-                        board[i][j] = 'O';
-                        let score = minimax(board, 0, false);
+                        board[i][j] = player;
+                        // Tính điểm cho nước đi này bằng cách gọi hàm minimax
+                        // depth bắt đầu từ 0, isMaximizing là true nếu player là X (vì sau đó sẽ đến lượt O)
+                        let score = minimax(board, 1, player === 'X');
+                        // Hoàn tác nước đi
                         board[i][j] = '';
-                        if (score > bestScore) {
+                        // Cập nhật điểm tốt nhất và nước đi tốt nhất
+                        if (player === 'O' ? score > bestScore : score < bestScore) {
                             bestScore = score;
-                            move = { i, j };
+                            bestMove = [i, j];
                         }
                     }
                 }
             }
-            handleCellClick(move.i, move.j);
+
+            // Trả về nước đi tốt nhất
+            return bestMove;
         }
 
         function minimax(board, depth, isMaximizing) {
-            if (checkWin()) {
-                return isMaximizing ? -1 : 1;
-            } else if (checkDraw()) {
-                return 0;
-            }
+            // Kiểm tra xem trò chơi đã kết thúc chưa
+            const result = checkWin();
+            
+            // Nếu X thắng, trả về điểm âm (bất lợi cho O)
+            // depth được cộng vào để ưu tiên thua muộn hơn
+            if (result === 'X') return depth - 10;
+            
+            // Nếu O thắng, trả về điểm dương (có lợi cho O)
+            // depth được trừ đi để ưu tiên thắng sớm hơn
+            if (result === 'O') return 10 - depth;
+            
+            // Nếu hòa, trả về 0
+            if (isBoardFull()) return 0;
 
             if (isMaximizing) {
+                // Đây là lượt của O, cần tối đa hóa điểm
                 let bestScore = -Infinity;
                 for (let i = 0; i < boardSize; i++) {
                     for (let j = 0; j < boardSize; j++) {
                         if (board[i][j] === '') {
                             board[i][j] = 'O';
+                            // Gọi đệ quy minimax với depth tăng lên 1 và chuyển lượt cho X (isMaximizing = false)
                             let score = minimax(board, depth + 1, false);
                             board[i][j] = '';
-                            bestScore = Math.max(score, bestScore);
+                            // Cập nhật điểm tốt nhất
+                            bestScore = Math.max(bestScore, score);
                         }
                     }
                 }
                 return bestScore;
             } else {
+                // Đây là lượt của X, cần tối thiểu hóa điểm
                 let bestScore = Infinity;
                 for (let i = 0; i < boardSize; i++) {
                     for (let j = 0; j < boardSize; j++) {
                         if (board[i][j] === '') {
                             board[i][j] = 'X';
+                            // Gọi đệ quy minimax với depth tăng lên 1 và chuyển lượt cho O (isMaximizing = true)
                             let score = minimax(board, depth + 1, true);
                             board[i][j] = '';
-                            bestScore = Math.min(score, bestScore);
+                            // Cập nhật điểm tốt nhất
+                            bestScore = Math.min(bestScore, score);
                         }
                     }
                 }
@@ -198,17 +187,105 @@
             }
         }
 
-        function resetGame() {
-            board = Array(boardSize).fill().map(() => Array(boardSize).fill(''));
-            currentPlayer = 'X';
-            gameActive = true;
-            status.textContent = '';
-            currentPlayerDisplay.textContent = currentPlayer;
-            createBoard();
+        function checkGameEnd() {
+            const winner = checkWin();
+            if (winner) {
+                const winningLine = getWinningLine();
+                drawWinningLine(winningLine);
+                // showGameResult(winner === 'X' ? 'Bạn thắng!' : 'Bạn thua!');
+                let gameResult = winner === 'X' ? 'Bạn thắng!' : 'Bạn thua!';
+                let gameResultElement = document.getElementById('gameResult');
+                gameResultElement.textContent = gameResult;
+                gameResultElement.style.display = 'block';
+                gameResultElement.style.color = winner === 'X' ? 'green' : 'red';
+                return true;
+            } else if (isBoardFull()) {
+                // showGameResult('Hòa!');
+                let gameResult = 'Hòa!';
+                let gameResultElement = document.getElementById('gameResult');
+                gameResultElement.textContent = gameResult;
+                gameResultElement.style.display = 'block';
+                return true;
+            }
+            return false;
         }
 
-        resetButton.addEventListener('click', resetGame);
-        
+        function checkWin() {
+            const lines = [
+                [[0, 0], [0, 1], [0, 2]],
+                [[1, 0], [1, 1], [1, 2]],
+                [[2, 0], [2, 1], [2, 2]],
+                [[0, 0], [1, 0], [2, 0]],
+                [[0, 1], [1, 1], [2, 1]],
+                [[0, 2], [1, 2], [2, 2]],
+                [[0, 0], [1, 1], [2, 2]],
+                [[0, 2], [1, 1], [2, 0]]
+            ];
+
+            for (let line of lines) {
+                const [a, b, c] = line;
+                if (board[a[0]][a[1]] && board[a[0]][a[1]] === board[b[0]][b[1]] && board[a[0]][a[1]] === board[c[0]][c[1]]) {
+                    return board[a[0]][a[1]];
+                }
+            }
+            return null;
+        }
+
+        function getWinningLine() {
+            const lines = [
+                [[0, 0], [0, 1], [0, 2]],
+                [[1, 0], [1, 1], [1, 2]],
+                [[2, 0], [2, 1], [2, 2]],
+                [[0, 0], [1, 0], [2, 0]],
+                [[0, 1], [1, 1], [2, 1]],
+                [[0, 2], [1, 2], [2, 2]],
+                [[0, 0], [1, 1], [2, 2]],
+                [[0, 2], [1, 1], [2, 0]]
+            ];
+
+            for (let line of lines) {
+                const [a, b, c] = line;
+                if (board[a[0]][a[1]] && board[a[0]][a[1]] === board[b[0]][b[1]] && board[a[0]][a[1]] === board[c[0]][c[1]]) {
+                    return line;
+                }
+            }
+            return null;
+        }
+
+        function drawWinningLine(line) {
+            const [start, _, end] = line;
+            const startCell = gameBoard.children[start[0] * boardSize + start[1]];
+            const endCell = gameBoard.children[end[0] * boardSize + end[1]];
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+            svg.style.position = "absolute";
+            svg.style.top = "0";
+            svg.style.left = "0";
+            svg.style.pointerEvents = "none";
+
+            const winLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            winLine.setAttribute("x1", startCell.offsetLeft + startCell.offsetWidth / 2);
+            winLine.setAttribute("y1", startCell.offsetTop + startCell.offsetHeight / 2);
+            winLine.setAttribute("x2", endCell.offsetLeft + endCell.offsetWidth / 2);
+            winLine.setAttribute("y2", endCell.offsetTop + endCell.offsetHeight / 2);
+            winLine.setAttribute("stroke", "limegreen");
+            winLine.setAttribute("stroke-width", "5");
+
+            svg.appendChild(winLine);
+            gameBoard.appendChild(svg);
+        }
+
+        function isBoardFull() {
+            return board.every(row => row.every(cell => cell !== ''));
+        }
+
+        function showGameResult(message) {
+            alert(message);
+        }
+
+        resetButton.addEventListener('click', createBoard);
 
         createBoard();
     </script>

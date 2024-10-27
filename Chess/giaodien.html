@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bàn Cờ Vua với Nước Đi Hợp Lệ</title>
+    <style>
+        .chess-container {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            grid-template-rows: auto auto;
+            gap: 5px;
+            padding: 5px;
+            background-color: #333;
+        }
+        .chess-board {
+            width: 400px;
+            height: 400px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+        }
+        .chess-square {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            position: relative;
+            cursor: pointer;
+        }
+        .white {
+            background-color: #f0d9b5;
+        }
+        .black {
+            background-color: #b58863;
+        }
+        .coordinates {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            color: #fff;
+            font-weight: bold;
+        }
+        .coordinates.vertical {
+            flex-direction: column-reverse;
+            width: 20px;
+        }
+        .coordinates.horizontal {
+            height: 20px;
+        }
+        .possible-move::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(0, 255, 0, 0.3);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="chess-container">
+        <div class="coordinates vertical">
+            <div>1</div><div>2</div><div>3</div><div>4</div>
+            <div>5</div><div>6</div><div>7</div><div>8</div>
+        </div>
+        <div>
+            <div id="chessBoard" class="chess-board"></div>
+            <div class="coordinates horizontal">
+                <div>a</div><div>b</div><div>c</div><div>d</div>
+                <div>e</div><div>f</div><div>g</div><div>h</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chessBoard = document.getElementById('chessBoard');
+        
+        // Mảng biểu diễn bàn cờ
+        // const boardState = [
+        //     ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+        //     ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+        //     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        //     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        //     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        //     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        //     ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+        //     ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+        // ];
+        const boardState = [
+            [' ', ' ', ' ', ' ', ' ', 'k', ' ', ' '],
+            [' ', ' ', ' ', 'p', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', 'N', ' ', ' ', 'K', ' ', ' ', ' '],
+        ];
+
+        // Hàm chuyển đổi ký tự quân cờ thành Unicode
+        function pieceToUnicode(piece) {
+            const pieceMap = {
+                'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+                'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙',
+                ' ': ''
+            };
+            return pieceMap[piece] || piece;
+        }
+
+        // Tạo bàn cờ
+        function createChessBoard() {
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const square = document.createElement('div');
+                    square.className = `chess-square ${(i + j) % 2 === 0 ? 'white' : 'black'}`;
+                    square.textContent = pieceToUnicode(boardState[i][j]);
+                    square.dataset.row = i;
+                    square.dataset.col = j;
+                    square.addEventListener('click', onSquareClick);
+                    chessBoard.appendChild(square);
+                }
+            }
+        }
+
+        function onSquareClick(event) {
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+            const piece = boardState[row][col];
+
+            // Xóa các nước đi có thể trước đó
+            clearPossibleMoves();
+
+            // Hiển thị các nước đi có thể cho quân cờ được chọn
+            if (piece !== ' ') {
+                const possibleMoves = getPossibleMoves(row, col, piece);
+                showPossibleMoves(possibleMoves);
+            }
+        }
+
+        function clearPossibleMoves() {
+            const squares = document.querySelectorAll('.chess-square');
+            squares.forEach(square => square.classList.remove('possible-move'));
+        }
+
+        function showPossibleMoves(moves) {
+            moves.forEach(move => {
+                const square = document.querySelector(`.chess-square[data-row="${move[0]}"][data-col="${move[1]}"]`);
+                if (square) {
+                    square.classList.add('possible-move');
+                }
+            });
+        }
+
+        function getPossibleMoves(row, col, piece) {
+            // Đây chỉ là một ví dụ đơn giản cho tốt trắng
+            // Bạn cần thêm logic cho các quân cờ khác và kiểm tra các quy tắc phức tạp hơn
+            const moves = [];
+            if (piece === 'P') {
+                if (row > 0 && boardState[row-1][col] === ' ') {
+                    moves.push([row-1, col]);
+                    if (row === 6 && boardState[row-2][col] === ' ') {
+                        moves.push([row-2, col]);
+                    }
+                }
+                if (row > 0 && col > 0 && boardState[row-1][col-1].toLowerCase() === boardState[row-1][col-1]) {
+                    moves.push([row-1, col-1]);
+                }
+                if (row > 0 && col < 7 && boardState[row-1][col+1].toLowerCase() === boardState[row-1][col+1]) {
+                    moves.push([row-1, col+1]);
+                }
+            }
+            return moves;
+        }
+
+        createChessBoard();
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8-Puzzle Solver with A* Algorithm</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+	body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+#puzzle-container {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  gap: 10px;
+  justify-content: center;
+  margin: 20px auto;
+  width: 330px;
+}
+
+.tile {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background-color: #2196f3;
+  color: white;
+  border-radius: 5px;
+}
+
+.tile.empty {
+  background-color: #f0f0f0;
+  color: #f0f0f0;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+#message {
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+</style>
+</head>
+<body>
+  <h1>8-Puzzle Solver</h1>
+  <div id="puzzle-container">
+    <!-- Sẽ hiển thị các ô của trò chơi ở đây -->
+  </div>
+  <button onclick="solvePuzzle()">Solve Puzzle</button>
+  <div id="message"></div>
+  <script>
+  	const initialState = [
+  [1, 2, 3],
+  [5, 6, 0],
+  [7, 8, 4]
+];
+
+const goalState = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 0]
+];
+
+const puzzleContainer = document.getElementById('puzzle-container');
+
+// Hàm hiển thị trạng thái trò chơi lên giao diện
+function renderPuzzle(state) {
+  puzzleContainer.innerHTML = '';
+  state.flat().forEach(num => {
+    const tile = document.createElement('div');
+    tile.classList.add('tile');
+    if (num === 0) {
+      tile.classList.add('empty');
+    } else {
+      tile.textContent = num;
+    }
+    puzzleContainer.appendChild(tile);
+  });
+}
+
+// Hàm tìm vị trí ô trống
+function findEmpty(state) {
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (state[i][j] === 0) return [i, j];
+    }
+  }
+}
+
+// Các thao tác di chuyển ô trống
+function swapTiles(state, pos1, pos2) {
+  const newState = state.map(row => row.slice());
+  [newState[pos1[0]][pos1[1]], newState[pos2[0]][pos2[1]]] = [newState[pos2[0]][pos2[1]], newState[pos1[0]][pos1[1]]];
+  return newState;
+}
+
+// Hàm heuristic (sử dụng Manhattan distance)
+function heuristic(state) {
+  let distance = 0;
+  state.forEach((row, i) => row.forEach((tile, j) => {
+    if (tile !== 0) {
+      const goalPos = [(tile - 1) / 3 | 0, (tile - 1) % 3];
+      distance += Math.abs(i - goalPos[0]) + Math.abs(j - goalPos[1]);
+    }
+  }));
+  return distance;
+}
+
+// Thuật toán A* để giải 8-puzzle
+function aStar(start, goal) {
+  const openSet = [{ state: start, g: 0, f: heuristic(start), path: [] }];
+  const closedSet = new Set();
+  while (openSet.length) {
+    openSet.sort((a, b) => a.f - b.f);
+    const { state, g, path } = openSet.shift();
+    if (JSON.stringify(state) === JSON.stringify(goal)) return path;
+    closedSet.add(JSON.stringify(state));
+    const empty = findEmpty(state);
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([di, dj]) => {
+      const [ni, nj] = [empty[0] + di, empty[1] + dj];
+      if (ni >= 0 && ni < 3 && nj >= 0 && nj < 3) {
+        const neighbor = swapTiles(state, empty, [ni, nj]);
+        if (!closedSet.has(JSON.stringify(neighbor))) {
+          openSet.push({
+            state: neighbor,
+            g: g + 1,
+            f: g + 1 + heuristic(neighbor),
+            path: path.concat([neighbor])
+          });
+        }
+      }
+    });
+  }
+  return null;
+}
+
+// Giải và hiển thị lời giải lên giao diện
+function solvePuzzle() {
+  const solutionPath = aStar(initialState, goalState);
+  if (solutionPath) {
+    let delay = 0;
+    solutionPath.forEach((state, i) => {
+      setTimeout(() => renderPuzzle(state), delay);
+      delay += 500;
+    });
+  } else {
+    document.getElementById('message').textContent = "No solution found!";
+  }
+}
+
+renderPuzzle(initialState);
+
+  </script>
+</body>
+</html>
