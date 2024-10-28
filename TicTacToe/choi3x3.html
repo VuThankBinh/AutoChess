@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi"> 
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
@@ -18,6 +18,7 @@
         #gameContainer {
             text-align: center;
         }
+
         #gameBoard {
             display: grid;
             grid-template-columns: repeat(3, 100px);
@@ -43,12 +44,38 @@
             background-color: green;
             z-index: 1;
         }
+
+        select#difficulty {
+            padding: 5px 10px;
+            font-size: 16px;
+            margin-left: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        select#difficulty:hover {
+            border-color: #888;
+        }
+
+        label {
+            font-size: 16px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
     <div id="gameContainer">
         <h1>Cờ Caro 3x3</h1>
+        <div style="margin-bottom: 20px;">
+            <label for="difficulty">Độ khó: </label>
+            <select id="difficulty" onchange="changeDifficulty()">
+                <option value="9">Dễ</option>
+                <option value="8" selected>Trung bình</option>
+                <option value="0">Khó</option>
+            </select>
+        </div>
         <h1 id="gameResult" style="display: none;"></h1>
         <div id="gameBoard"></div>
         <p>Lượt của: <span id="currentPlayer">X</span></p>
@@ -61,6 +88,25 @@
         const boardSize = 3;
         let currentPlayer = 'X';
         let board = [];
+        let searchDepth = 8; // Mặc định là trung bình
+
+        function updateDifficultyDisplay() {
+            const difficultyText = {
+                '9': 'Dễ',
+                '8': 'Trung bình',
+                '0': 'Khó'
+            };
+            const currentDifficulty = document.getElementById('difficulty').value;
+            console.log(`Độ khó hiện tại: ${difficultyText[currentDifficulty]}`);
+            console.log(`Độ sâu tìm kiếm: ${currentDifficulty}`);
+        }
+
+        function changeDifficulty() {
+            const difficultySelect = document.getElementById('difficulty');
+            searchDepth = parseInt(difficultySelect.value);
+            updateDifficultyDisplay();
+            createBoard();
+        }
 
         function createBoard() {
             gameBoard.innerHTML = '';
@@ -121,7 +167,7 @@
                         board[i][j] = player;
                         // Tính điểm cho nước đi này bằng cách gọi hàm minimax
                         // depth bắt đầu từ 0, isMaximizing là true nếu player là X (vì sau đó sẽ đến lượt O)
-                        let score = minimax(board, 1, player === 'X');
+                        let score = minimax(board, searchDepth, player === 'X');
                         // Hoàn tác nước đi
                         board[i][j] = '';
                         // Cập nhật điểm tốt nhất và nước đi tốt nhất
@@ -138,48 +184,39 @@
         }
 
         function minimax(board, depth, isMaximizing) {
-            // Kiểm tra xem trò chơi đã kết thúc chưa
+            // 1. Kiểm tra điều kiện dừng
             const result = checkWin();
+            if (result === 'X') return -10;  // X thắng
+            if (result === 'O') return 10;   // O thắng
+            if (isBoardFull()) return 0;     // Hòa
             
-            // Nếu X thắng, trả về điểm âm (bất lợi cho O)
-            // depth được cộng vào để ưu tiên thua muộn hơn
-            if (result === 'X') return depth - 10;
+            // 2. Kiểm tra độ sâu tối đa
+            if (depth >= 9) return 0;  // Giới hạn độ sâu tối đa
             
-            // Nếu O thắng, trả về điểm dương (có lợi cho O)
-            // depth được trừ đi để ưu tiên thắng sớm hơn
-            if (result === 'O') return 10 - depth;
-            
-            // Nếu hòa, trả về 0
-            if (isBoardFull()) return 0;
-
+            // 3. Lượt MAX (O)
             if (isMaximizing) {
-                // Đây là lượt của O, cần tối đa hóa điểm
                 let bestScore = -Infinity;
                 for (let i = 0; i < boardSize; i++) {
                     for (let j = 0; j < boardSize; j++) {
                         if (board[i][j] === '') {
                             board[i][j] = 'O';
-                            // Gọi đệ quy minimax với depth tăng lên 1 và chuyển lượt cho X (isMaximizing = false)
-                            let score = minimax(board, depth + 1, false);
+                            // Đệ quy với depth + 1
+                            bestScore = Math.max(bestScore, minimax(board, depth + 1, false));
                             board[i][j] = '';
-                            // Cập nhật điểm tốt nhất
-                            bestScore = Math.max(bestScore, score);
                         }
                     }
                 }
                 return bestScore;
-            } else {
-                // Đây là lượt của X, cần tối thiểu hóa điểm
+            } 
+            // 4. Lượt MIN (X)
+            else {
                 let bestScore = Infinity;
                 for (let i = 0; i < boardSize; i++) {
                     for (let j = 0; j < boardSize; j++) {
                         if (board[i][j] === '') {
                             board[i][j] = 'X';
-                            // Gọi đệ quy minimax với depth tăng lên 1 và chuyển lượt cho O (isMaximizing = true)
-                            let score = minimax(board, depth + 1, true);
+                            bestScore = Math.min(bestScore, minimax(board, depth + 1, true));
                             board[i][j] = '';
-                            // Cập nhật điểm tốt nhất
-                            bestScore = Math.min(bestScore, score);
                         }
                     }
                 }
