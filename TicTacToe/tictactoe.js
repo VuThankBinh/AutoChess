@@ -48,22 +48,22 @@ function playerMove(row, col) {
     }
 }
 
-function computerMove() {
-    let move;
-    if (boardSize === 3) {
-        // Sử dụng Minimax cho bàn cờ 3x3
-        move = minimaxMove(board, 'O');
-    } else if (boardSize === 10) {
-        // Sử dụng Alpha-Beta Pruning cho bàn cờ 10x10
-        move = alphaBetaMove(board, 'O', 4);
-    } else {
-        // Sử dụng Monte Carlo Tree Search cho bàn cờ lớn hơn
-        move = monteCarloMove(board, 'O', 1000);
-    }
-    if (move) {
-        makeMove(move[0], move[1]);
-    }
-}
+// function computerMove() {
+//     let move;
+//     if (boardSize === 3) {
+//         // Sử dụng Minimax cho bàn cờ 3x3
+//         move = minimaxMove(board, 'O');
+//     } else if (boardSize === 10) {
+//         // Sử dụng Alpha-Beta Pruning cho bàn cờ 10x10
+//         move = alphaBetaMove(board, 'O', 7);
+//     } else {
+       
+       
+//     }
+//     if (move) {
+//         makeMove(move[0], move[1]);
+//     }
+// }
 
 // Thuật toán Minimax cho bàn cờ 3x3
 function minimaxMove(board, player) {
@@ -228,59 +228,6 @@ function evaluateLine(board, row, col, dx, dy, player) {
     return Math.pow(10, count) * (openEnds + 1);
 }
 
-// Monte Carlo Tree Search cho bàn cờ 15x15
-function monteCarloMove(board, player, iterations) {
-    const root = new MCTSNode(null, null);
-    for (let i = 0; i < iterations; i++) {
-        let node = root;
-        let tempBoard = board.map(row => [...row]);
-        
-        // Giai đoạn Lựa chọn
-        while (node.untriedMoves.length === 0 && node.children.length > 0) {
-            node = node.selectChild();
-            tempBoard[node.move[0]][node.move[1]] = player;
-        }
-        
-        // Giai đoạn Mở rộng
-        if (node.untriedMoves.length > 0) {
-            let move = node.untriedMoves.pop();
-            tempBoard[move[0]][move[1]] = player;
-            node = node.addChild(move, tempBoard);
-        }
-        
-        // Giai đoạn Mô phỏng
-        let currentPlayer = player === 'O' ? 'X' : 'O';
-        while (!checkWin('O') && !checkWin('X') && !isBoardFull()) {
-            let availableMoves = [];
-            for (let i = 0; i < boardSize; i++) {
-                for (let j = 0; j < boardSize; j++) {
-                    if (tempBoard[i][j] === '') availableMoves.push([i, j]);
-                }
-            }
-            if (availableMoves.length === 0) break;
-            let randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-            tempBoard[randomMove[0]][randomMove[1]] = currentPlayer;
-            currentPlayer = currentPlayer === 'O' ? 'X' : 'O';
-        }
-        
-        // Giai đoạn Lan truyền ngược
-        while (node !== null) {
-            node.update(checkWin(player));
-            node = node.parent;
-        }
-    }
-    
-    return root.getBestMove();
-}
-
-
-
-function makeMove(row, col) {
-    board[row][col] = currentPlayer;
-    const cell = gameBoard.children[row].children[col];
-    cell.textContent = currentPlayer;
-}
-
 function checkGameEnd() {
     const result = checkWin(currentPlayer);
     if (result) {
@@ -319,7 +266,6 @@ function drawWinningLine(line) {
     gameBoard.appendChild(svg);
 }
 
-// Hàm kiểm tra chiến thắng
 // Hàm kiểm tra chiến thắng
 function checkWin(player) {
     // Xác định số quân cần xếp hàng để thắng
@@ -361,146 +307,6 @@ function checkWin(player) {
     
     // Nếu không tìm thấy chuỗi chiến thắng, trả về false
     return false;
-}
-
-function computerMove() {
-    let move;
-    if (boardSize === 3) {
-        // Sử dụng Minimax cho bàn cờ 3x3
-        move = minimaxMove(board, 'O');
-    } else if (boardSize === 10) {
-        // Sử dụng Alpha-Beta Pruning cho bàn cờ 10x10
-        move = alphaBetaMove(board, 'O', 4);
-    } else {
-        // Sử dụng Monte Carlo Tree Search cho bàn cờ lớn hơn
-        move = monteCarloMove(board, 'O', 1000);
-    }
-    if (move) {
-        makeMove(move[0], move[1]);
-    }
-}
-
-// Thuật toán Minimax cho bàn cờ 3x3
-function minimaxMove(board, player) {
-    let bestScore = player === 'O' ? -Infinity : Infinity;
-    let bestMove;
-    for (let i = 0; i < boardSize; i++) {
-        for (let j = 0; j < boardSize; j++) {
-            if (board[i][j] === '') {
-                board[i][j] = player;
-                let score = minimax(board, 0, player === 'X');
-                board[i][j] = '';
-                if (player === 'O' ? score > bestScore : score < bestScore) {
-                    bestScore = score;
-                    bestMove = [i, j];
-                }
-            }
-        }
-    }
-    return bestMove;
-}
-
-// Hàm đệ quy Minimax
-function minimax(board, depth, isMaximizing) {
-    // Kiểm tra điều kiện kết thúc
-    let result = checkWin(isMaximizing ? 'O' : 'X');
-    if (result) return isMaximizing ? 10 - depth : depth - 10;
-    if (isBoardFull()) return 0;
-
-    if (isMaximizing) {
-        // Lượt của máy (O)
-        let bestScore = -Infinity;
-        for (let i = 0; i < boardSize; i++) {
-            for (let j = 0; j < boardSize; j++) {
-                if (board[i][j] === '') {
-                    board[i][j] = 'O';
-                    let score = minimax(board, depth + 1, false);
-                    board[i][j] = '';
-                    bestScore = Math.max(score, bestScore);
-                }
-            }
-        }
-        return bestScore;
-    } else {
-        // Lượt của người chơi (X)
-        let bestScore = Infinity;
-        for (let i = 0; i < boardSize; i++) {
-            for (let j = 0; j < boardSize; j++) {
-                if (board[i][j] === '') {
-                    board[i][j] = 'X';
-                    let score = minimax(board, depth + 1, true);
-                    board[i][j] = '';
-                    bestScore = Math.min(score, bestScore);
-                }
-            }
-        }
-        return bestScore;
-    }
-}
-
-// Alpha-Beta Pruning cho bàn cờ 10x10
-function alphaBetaMove(board, player, depth) {
-    let bestScore = -Infinity;
-    let bestMove;
-    let alpha = -Infinity;
-    let beta = Infinity;
-    for (let i = 0; i < boardSize; i++) {
-        for (let j = 0; j < boardSize; j++) {
-            if (board[i][j] === '') {
-                board[i][j] = player;
-                let score = alphaBeta(board, depth - 1, alpha, beta, false);
-                board[i][j] = '';
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = [i, j];
-                }
-                alpha = Math.max(alpha, bestScore);
-                if (beta <= alpha) break; // Cắt tỉa Alpha-Beta
-            }
-        }
-    }
-    return bestMove;
-}
-
-// Hàm đệ quy Alpha-Beta
-function alphaBeta(board, depth, alpha, beta, isMaximizing) {
-    if (depth === 0 || checkWin('O') || checkWin('X') || isBoardFull()) {
-        return evaluateBoard(board);
-    }
-
-    if (isMaximizing) {
-        // Lượt của máy (O)
-        let maxEval = -Infinity;
-        for (let i = 0; i < boardSize; i++) {
-            for (let j = 0; j < boardSize; j++) {
-                if (board[i][j] === '') {
-                    board[i][j] = 'O';
-                    let eval = alphaBeta(board, depth - 1, alpha, beta, false);
-                    board[i][j] = '';
-                    maxEval = Math.max(maxEval, eval);
-                    alpha = Math.max(alpha, eval);
-                    if (beta <= alpha) break; // Cắt tỉa Alpha-Beta
-                }
-            }
-        }
-        return maxEval;
-    } else {
-        // Lượt của người chơi (X)
-        let minEval = Infinity;
-        for (let i = 0; i < boardSize; i++) {
-            for (let j = 0; j < boardSize; j++) {
-                if (board[i][j] === '') {
-                    board[i][j] = 'X';
-                    let eval = alphaBeta(board, depth - 1, alpha, beta, true);
-                    board[i][j] = '';
-                    minEval = Math.min(minEval, eval);
-                    beta = Math.min(beta, eval);
-                    if (beta <= alpha) break; // Cắt tỉa Alpha-Beta
-                }
-            }
-        }
-        return minEval;
-    }
 }
 
 // Hàm đánh giá bàn cờ
@@ -543,121 +349,8 @@ function evaluateLine(board, row, col, dx, dy, player) {
     return Math.pow(10, count) * (openEnds + 1);
 }
 
-// Monte Carlo Tree Search cho bàn cờ 15x15
-function monteCarloMove(board, player, iterations) {
-    const root = new MCTSNode(null, null);
-    for (let i = 0; i < iterations; i++) {
-        let node = root;
-        let tempBoard = board.map(row => [...row]);
 
-        // Giai đoạn Lựa chọn
-        while (node.untriedMoves.length === 0 && node.children.length > 0) {
-            node = node.selectChild();
-            tempBoard[node.move[0]][node.move[1]] = player;
-        }
 
-        // Giai đoạn Mở rộng
-        if (node.untriedMoves.length > 0) {
-            let move = node.untriedMoves.pop();
-            tempBoard[move[0]][move[1]] = player;
-            node = node.addChild(move, tempBoard);
-        }
-
-        // Giai đoạn Mô phỏng
-        let currentPlayer = player === 'O' ? 'X' : 'O';
-        while (!checkWin('O') && !checkWin('X') && !isBoardFull()) {
-            let availableMoves = [];
-            for (let i = 0; i < boardSize; i++) {
-                for (let j = 0; j < boardSize; j++) {
-                    if (tempBoard[i][j] === '') availableMoves.push([i, j]);
-                }
-            }
-            if (availableMoves.length === 0) break;
-            let randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-            tempBoard[randomMove[0]][randomMove[1]] = currentPlayer;
-            currentPlayer = currentPlayer === 'O' ? 'X' : 'O';
-        }
-
-        // Giai đoạn Lan truyền ngược
-        while (node !== null) {
-            node.update(checkWin(player));
-            node = node.parent;
-        }
-    }
-
-    return root.getBestMove();
-}
-
-// Lớp Node cho MCTS
-class MCTSNode {
-    constructor(parent, move) {
-        this.parent = parent;
-        this.move = move;
-        this.untriedMoves = this.getUntriedMoves();
-        this.children = [];
-        this.wins = 0;
-        this.visits = 0;
-    }
-
-    // Lấy danh sách các nước đi chưa thử
-    getUntriedMoves() {
-        let moves = [];
-        for (let i = 0; i < boardSize; i++) {
-            for (let j = 0; j < boardSize; j++) {
-                if (board[i][j] === '') moves.push([i, j]);
-            }
-        }
-        return moves;
-    }
-
-    // Chọn node con dựa trên UCT (Upper Confidence Bound applied to Trees)
-    selectChild() {
-        return this.children.reduce((selected, child) => {
-            let uctValue = child.wins / child.visits +
-                Math.sqrt(2 * Math.log(this.visits) / child.visits);
-            return uctValue > selected.uctValue ? { node: child, uctValue } : selected;
-        }, { node: null, uctValue: -Infinity }).node;
-    }
-
-    // Thêm node con mới
-    addChild(move, board) {
-        let child = new MCTSNode(this, move);
-        this.children.push(child);
-        return child;
-    }
-
-    // Cập nhật thông tin node sau mỗi lần mô phỏng
-    update(result) {
-        this.visits++;
-        if (result) this.wins++;
-    }
-
-    // Lấy nước đi tốt nhất dựa trên số lần thăm
-    getBestMove() {
-        return this.children.reduce((best, child) =>
-            child.visits > best.visits ? child : best
-        ).move;
-    }
-}
-
-function makeMove(row, col) {
-    board[row][col] = currentPlayer;
-    const cell = gameBoard.children[row].children[col];
-    cell.textContent = currentPlayer;
-}
-
-function checkGameEnd() {
-    const result = checkWin(currentPlayer);
-    if (result) {
-        drawWinningLine(result.line);
-        showGameResult(currentPlayer === 'X' ? 'Bạn thắng!' : 'Bạn thua!');
-        return true;
-    } else if (isBoardFull()) {
-        showGameResult('Hòa!');
-        return true;
-    }
-    return false;
-}
 
 function drawWinningLine(line) {
     const [start, end] = [line[0], line[line.length - 1]];
@@ -677,55 +370,55 @@ function drawWinningLine(line) {
     winLine.setAttribute("y1", startCell.offsetTop + startCell.offsetHeight / 2);
     winLine.setAttribute("x2", endCell.offsetLeft + endCell.offsetWidth / 2);
     winLine.setAttribute("y2", endCell.offsetTop + endCell.offsetHeight / 2);
-    winLine.setAttribute("stroke", "blue");
+    winLine.setAttribute("stroke", "green");
     winLine.setAttribute("stroke-width", "3");
 
     svg.appendChild(winLine);
     gameBoard.appendChild(svg);
 }
 
-// Hàm kiểm tra chiến thắng
-function checkWin(player) {
-    // Xác định số quân cần xếp hàng để thắng
-    const winLength = boardSize === 3 ? 3 : 5;
+// // Hàm kiểm tra chiến thắng
+// function checkWin(player) {
+//     // Xác định số quân cần xếp hàng để thắng
+//     const winLength = boardSize === 3 ? 3 : 5;
 
-    // Định nghĩa các hướng để kiểm tra: ngang, dọc, chéo xuống, chéo lên
-    const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+//     // Định nghĩa các hướng để kiểm tra: ngang, dọc, chéo xuống, chéo lên
+//     const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
 
-    // Duyệt qua tất cả các ô trên bàn cờ
-    for (let row = 0; row < boardSize; row++) {
-        for (let col = 0; col < boardSize; col++) {
-            // Nếu ô hiện tại là của người chơi đang kiểm tra
-            if (board[row][col] === player) {
-                // Kiểm tra theo từng hướng
-                for (let [dx, dy] of directions) {
-                    let count = 1; // Bắt đầu đếm từ 1 (ô hiện tại)
+//     // Duyệt qua tất cả các ô trên bàn cờ
+//     for (let row = 0; row < boardSize; row++) {
+//         for (let col = 0; col < boardSize; col++) {
+//             // Nếu ô hiện tại là của người chơi đang kiểm tra
+//             if (board[row][col] === player) {
+//                 // Kiểm tra theo từng hướng
+//                 for (let [dx, dy] of directions) {
+//                     let count = 1; // Bắt đầu đếm từ 1 (ô hiện tại)
 
-                    // Kiểm tra các ô tiếp theo theo hướng đã chọn
-                    for (let i = 1; i < winLength; i++) {
-                        let newRow = row + i * dx;
-                        let newCol = col + i * dy;
+//                     // Kiểm tra các ô tiếp theo theo hướng đã chọn
+//                     for (let i = 1; i < winLength; i++) {
+//                         let newRow = row + i * dx;
+//                         let newCol = col + i * dy;
 
-                        // Nếu vượt ra ngoài bàn cờ hoặc không phải quân của người chơi, dừng kiểm tra
-                        if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize || board[newRow][newCol] !== player) {
-                            break;
-                        }
+//                         // Nếu vượt ra ngoài bàn cờ hoặc không phải quân của người chơi, dừng kiểm tra
+//                         if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize || board[newRow][newCol] !== player) {
+//                             break;
+//                         }
 
-                        count++; // Tăng số quân liên tiếp
-                    }
+//                         count++; // Tăng số quân liên tiếp
+//                     }
 
-                    // Nếu đủ số quân cần thiết để thắng, trả về true
-                    if (count === winLength) {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
+//                     // Nếu đủ số quân cần thiết để thắng, trả về true
+//                     if (count === winLength) {
+//                         return true;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    // Nếu không tìm thấy chuỗi chiến thắng, trả về false
-    return false;
-}
+//     // Nếu không tìm thấy chuỗi chiến thắng, trả về false
+//     return false;
+// }
 
 
 
@@ -919,45 +612,8 @@ function evaluateDirection(row, col, dx, dy, player) {
 function makeMove(row, col) {
     board[row][col] = currentPlayer;
     const cell = gameBoard.children[row].children[col];
+    cell.style.color = currentPlayer === 'X' ? 'red' : 'black';
     cell.textContent = currentPlayer;
-}
-
-function checkGameEnd() {
-    const result = checkWin(currentPlayer);
-    if (result) {
-        drawWinningLine(result.line);
-        showGameResult(currentPlayer === 'X' ? 'Bạn thắng!' : 'Bạn thua!');
-        return true;
-    } else if (isBoardFull()) {
-        showGameResult('Hòa!');
-        return true;
-    }
-    return false;
-}
-
-function drawWinningLine(line) {
-    const [start, end] = [line[0], line[line.length - 1]];
-    const startCell = gameBoard.children[start[0]].children[start[1]];
-    const endCell = gameBoard.children[end[0]].children[end[1]];
-
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", "100%");
-    svg.setAttribute("height", "100%");
-    svg.style.position = "absolute";
-    svg.style.top = "0";
-    svg.style.left = "0";
-    svg.style.pointerEvents = "none";
-
-    const winLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    winLine.setAttribute("x1", startCell.offsetLeft + startCell.offsetWidth / 2);
-    winLine.setAttribute("y1", startCell.offsetTop + startCell.offsetHeight / 2);
-    winLine.setAttribute("x2", endCell.offsetLeft + endCell.offsetWidth / 2);
-    winLine.setAttribute("y2", endCell.offsetTop + endCell.offsetHeight / 2);
-    winLine.setAttribute("stroke", "blue");
-    winLine.setAttribute("stroke-width", "3");
-
-    svg.appendChild(winLine);
-    gameBoard.appendChild(svg);
 }
 
 function checkWin(player) {

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha-Beta Pruning Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        #tree-container {
+            margin-top: 30px;
+        }
+
+        .node {
+            display: inline-block;
+            margin: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            width: 100px;
+            height: 50px;
+            font-size: 1.2em;
+            line-height: 1.2;
+        }
+
+        .max-node {
+            background-color: #a3d5ff;
+        }
+
+        .min-node {
+            background-color: #ff9999;
+        }
+
+        .cut {
+            background-color: #ddd;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tree-container">
+        <h2>Alpha-Beta Pruning Visualization</h2>
+        <div id="tree"></div>
+        <button onclick="runAlphaBeta()">Start Visualization</button>
+    </div>
+    <script>
+        // Khởi tạo mảng board ban đầu
+        let board = [
+            [' ', ' ', ' ', ' ', 'b_k', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', 'w_K', ' ', ' ', ' '],
+            [' ', ' ', 'b_N', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', 'w_p', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+        ];
+
+        // Hàm lượng giá: Tính điểm của bàn cờ hiện tại dựa trên quân cờ
+        function evaluateBoard(board) {
+            let score = 0;
+            for (let row = 0; row < board.length; row++) {
+                for (let col = 0; col < board[row].length; col++) {
+                    const piece = board[row][col];
+                    if (piece === 'b_k') score += 100; // Giá trị cho vua đen
+                    else if (piece === 'w_K') score -= 100; // Giá trị cho vua trắng
+                    else if (piece === 'b_N') score += 30; // Giá trị cho mã đen
+                    else if (piece === 'w_p') score -= 10; // Giá trị cho tốt trắng
+                }
+            }
+            return score;
+        }
+
+        // Hàm sinh các nước đi hợp lệ cho một quân cờ (đơn giản hóa)
+        function generateMoves(board, isBlackTurn) {
+            // Dựa trên quân cờ hiện tại, sinh ra tất cả các nước đi có thể cho quân đen hoặc trắng
+            // Ở đây chỉ đơn giản hóa: hàm thực tế cần các quy tắc di chuyển chi tiết
+            let moves = [];
+            for (let row = 0; row < board.length; row++) {
+                for (let col = 0; col < board[row].length; col++) {
+                    const piece = board[row][col];
+                    if ((isBlackTurn && piece.startsWith('b')) || (!isBlackTurn && piece.startsWith('w'))) {
+                        // Sinh nước đi hợp lệ và lưu vào `moves`
+                        moves.push({ from: [row, col], to: [row + 1, col + 1] }); // Giả định di chuyển
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // Hàm Minimax với Alpha-Beta pruning
+        function alphaBeta(board, depth, alpha, beta, isMaximizingPlayer) {
+            if (depth === 0) return evaluateBoard(board);
+
+            if (isMaximizingPlayer) {
+                let maxEval = -Infinity;
+                const moves = generateMoves(board, true);
+                for (const move of moves) {
+                    // Tạo bản sao của board và thực hiện nước đi
+                    let newBoard = board.map(row => row.slice());
+                    newBoard[move.to[0]][move.to[1]] = newBoard[move.from[0]][move.from[1]];
+                    newBoard[move.from[0]][move.from[1]] = ' ';
+
+                    const eval = alphaBeta(newBoard, depth - 1, alpha, beta, false);
+                    maxEval = Math.max(maxEval, eval);
+                    alpha = Math.max(alpha, eval);
+
+                    if (beta <= alpha) break; // Cắt tỉa
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                const moves = generateMoves(board, false);
+                for (const move of moves) {
+                    let newBoard = board.map(row => row.slice());
+                    newBoard[move.to[0]][move.to[1]] = newBoard[move.from[0]][move.from[1]];
+                    newBoard[move.from[0]][move.from[1]] = ' ';
+
+                    const eval = alphaBeta(newBoard, depth - 1, alpha, beta, true);
+                    minEval = Math.min(minEval, eval);
+                    beta = Math.min(beta, eval);
+
+                    if (beta <= alpha) break; // Cắt tỉa
+                }
+                return minEval;
+            }
+        }
+
+        // Chạy hàm tìm kiếm Alpha-Beta với độ sâu 3 để tìm nước đi tốt nhất cho đen
+        function findBestMove(board) {
+            let bestMove = null;
+            let bestValue = -Infinity;
+            const moves = generateMoves(board, true);
+
+            for (const move of moves) {
+                let newBoard = board.map(row => row.slice());
+                newBoard[move.to[0]][move.to[1]] = newBoard[move.from[0]][move.from[1]];
+                newBoard[move.from[0]][move.from[1]] = ' ';
+
+                const boardValue = alphaBeta(newBoard, 3, -Infinity, Infinity, false);
+                if (boardValue > bestValue) {
+                    bestValue = boardValue;
+                    bestMove = move;
+                }
+            }
+            return bestMove;
+        }
+
+        // Thực hiện tìm nước đi tốt nhất và in kết quả
+        const bestMove = findBestMove(board);
+        console.log("Best Move for Black:", bestMove);
+
+    </script>
+</body>
+
+</html>
