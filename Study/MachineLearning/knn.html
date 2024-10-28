@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thuật Toán KNN</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        input {
+            margin: 5px 0;
+            padding: 10px;
+            width: 100%;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Phân loại bằng KNN</h1>
+        <input type="number" id="feature1" placeholder="Nhập đặc trưng 1">
+        <input type="number" id="feature2" placeholder="Nhập đặc trưng 2">
+        <button onclick="classify()">Phân loại</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // Dữ liệu huấn luyện
+        const trainingData = [
+            { features: [1, 2], label: 'A' },
+            { features: [2, 3], label: 'A' },
+            { features: [3, 3], label: 'B' },
+            { features: [6, 5], label: 'B' },
+            { features: [7, 8], label: 'B' }
+        ];
+
+        function euclideanDistance(point1, point2) {
+            return Math.sqrt(Math.pow(point1[0] - point2[0], 2) + Math.pow(point1[1] - point2[1], 2));
+        }
+
+        function classify() {
+            const feature1 = parseFloat(document.getElementById('feature1').value);
+            const feature2 = parseFloat(document.getElementById('feature2').value);
+            const inputPoint = [feature1, feature2];
+
+            // Tính khoảng cách và phân loại
+            const distances = trainingData.map(data => {
+                return { distance: euclideanDistance(data.features, inputPoint), label: data.label };
+            });
+
+            // Sắp xếp theo khoảng cách
+            distances.sort((a, b) => a.distance - b.distance);
+
+            // Lấy nhãn của K điểm gần nhất
+            const k = 3; // Số lượng điểm gần nhất
+            const nearestLabels = distances.slice(0, k).map(data => data.label);
+
+            // Đếm nhãn
+            const labelCount = {};
+            nearestLabels.forEach(label => {
+                labelCount[label] = (labelCount[label] || 0) + 1;
+            });
+
+            // Tìm nhãn phổ biến nhất
+            const resultLabel = Object.keys(labelCount).reduce((a, b) => labelCount[a] > labelCount[b] ? a : b);
+
+            document.getElementById('result').innerText = `Nhãn dự đoán: ${resultLabel}`;
+        }
+    </script>
+</body>
+</html>
